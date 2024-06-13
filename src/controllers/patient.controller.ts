@@ -8,6 +8,14 @@ export const createPatientController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
+    const userId = req.user
+
+    if(!userId) {
+      return res.status(422).json({
+        errors: "Something went wrong",
+      });
+    }
+
     if (!errors.isEmpty()) {
       const firstError = errors.array().map((error) => error.msg)[0];
       return res.status(422).json({
@@ -32,6 +40,7 @@ export const createPatientController = catchAsyncError(
         gender,
         phone,
         email,
+        userId: userId?._id
       });
 
       res.status(201).json(newPatient);

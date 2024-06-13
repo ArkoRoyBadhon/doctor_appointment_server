@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import mongoose, { Schema, model, Document } from 'mongoose';
 import { IReview } from './review.model';
 
 export interface IPatient extends Document {
@@ -8,6 +8,7 @@ export interface IPatient extends Document {
   phone: string;
   email: string;
   reviews?: IReview['_id'][];
+  userId: any
 }
 
 const patientSchema = new Schema<IPatient>({
@@ -16,6 +17,10 @@ const patientSchema = new Schema<IPatient>({
   gender: { type: String, required: true },
   phone: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+  userId: {
+    type: mongoose.Types.ObjectId,
+    
+  }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

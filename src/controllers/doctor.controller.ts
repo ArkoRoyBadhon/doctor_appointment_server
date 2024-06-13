@@ -7,6 +7,13 @@ import Appointment from "../models/appointment.model";
 export const createDoctorController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
+    const userId = req.user
+
+    if(!userId) {
+      return res.status(422).json({
+        errors: "Something went wrong",
+      });
+    }
 
     if (!errors.isEmpty()) {
       const firstError = errors.array().map((error) => error.msg)[0];
@@ -24,7 +31,7 @@ export const createDoctorController = catchAsyncError(
         return res.status(400).json({ message: "Doctor with this email already exists" });
       }
 
-      const newDoctor = await Doctor.create({ name, specialization, phone, email, availability });
+      const newDoctor = await Doctor.create({ name, specialization, phone, email, availability, userId: userId?._id });
 
       res.status(201).json(newDoctor);
     } catch (error) {

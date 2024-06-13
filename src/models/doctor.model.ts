@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, model, Document } from "mongoose";
 import { IReview } from "./review.model";
 
 interface IAvailability {
@@ -14,6 +14,7 @@ export interface IDoctor extends Document {
   email: string;
   availability: IAvailability[];
   reviews?: IReview['_id'][];
+  userId?: any
 }
 
 const availabilitySchema = new Schema<IAvailability>({
@@ -29,6 +30,10 @@ const doctorSchema = new Schema<IDoctor>(
     phone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     availability: { type: [availabilitySchema], required: true },
+    userId: {
+      type: mongoose.Types.ObjectId,
+      
+    }
   },
   {
     timestamps: true,
