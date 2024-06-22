@@ -223,11 +223,10 @@ export const forgotPassword = catchAsyncError(async (req, res) => {
   });
 });
 
-const recoverPassword = async (
-  payload: { id: string; newPassword: string },
-  token: string
-) => {
+export const recoverPassword = catchAsyncError(async (req, res) => {
   // checking if the user is exist
+  const payload = req.body;
+  const token = req.headers.authorization as string;
   const user = await User.findById(payload?.id);
 
   const decoded = jwt.verify(
@@ -235,10 +234,10 @@ const recoverPassword = async (
     process.env.JWT_SECRET as string
   ) as JwtPayload;
 
-  //localhost:3000?id=A-0001&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJBLTAwMDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDI4NTA2MTcsImV4cCI6MTcwMjg1MTIxN30.-T90nRaz8-KouKki1DkCSMAbsHyb9yDi0djZU3D6QO4
+  //localhost:5000?id=6441555asfasdf5&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJBLTAwMDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDI4NTA2MTcsImV4cCI6MTcwMjg1MTIxN30.-T90nRaz8-KouKki1DkCSMAbsHyb9yDi0djZU3D6QO4
 
   if (payload.id !== decoded.userId) {
-    return;
+    throw new ErrorHandler("Forbiden access", 403);
   }
 
   //hash new password
@@ -253,4 +252,5 @@ const recoverPassword = async (
       password: newHashedPassword,
     }
   );
-};
+  res;
+});
