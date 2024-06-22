@@ -3,6 +3,7 @@ import catchAsyncError from "../middlewares/catchAsyncErrors";
 import { validationResult } from "express-validator";
 import Patient from "../models/patient.model";
 import Appointment from "../models/appointment.model";
+import User from "../models/user.model";
 
 export const createPatientController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -121,6 +122,16 @@ export const updatePatientController = catchAsyncError(
 
       await patient.save();
 
+      const UserUpdate = await User.findByIdAndUpdate(
+        patient?.userId,
+        {
+          ...req.body,
+        },
+        {
+          new: true,
+        }
+      );
+
       return res.status(200).json({
         success: true,
         msg: "Patient updated successfully.",
@@ -149,6 +160,8 @@ export const deletePatientController = catchAsyncError(
         { patient: patient._id, status: { $ne: "completed" } },
         { status: "canceled" }
       );
+
+      await User.findByIdAndDelete(patient?.userId)
 
       return res.status(200).json({
         success: true,
