@@ -4,51 +4,18 @@ import { validationResult } from "express-validator";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import catchAsyncError from "../middlewares/catchAsyncErrors";
 import Patient from "../models/patient.model";
+import RefreshToken from "../models/refreshToken.model";
 import User from "../models/user.model";
 import ErrorHandler from "../utils/errorhandler";
-import createToken from "../utils/jwtToken";
+import { createAcessToken, createRefreshToken } from "../utils/jwtToken";
 
 // import shopModel from "../models/shop.model";
 
 // Register Account
-export const checkEmailController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { email } = req.body;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new ErrorHandler(errors.array()[0].msg, 422);
-    }
-    const existingEmail = await Patient.findOne({ email });
-
-    if (existingEmail) {
-      return res.json({
-        success: true,
-        exist: true,
-        message: "Email checked",
-      });
-    }
-
-    return res.json({
-      success: true,
-      exist: false,
-      message: "Email checked",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 // Register customer Account
-export const registerCustomerController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const registerCustomerController = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
     const { email, name, password, age, gender, phone } = req.body;
     const errors = validationResult(req);
     console.log("sss", req.body);
@@ -68,43 +35,50 @@ export const registerCustomerController = async (
       password: hashedPassword,
     });
 
-    const token = createToken(user, "7d");
+    // hash password salt id
+    const tokenPayload = {
+      email: user.email,
+      userId: user._id,
+      role: user.role,
+    };
+
+    const accessToken = createAcessToken(tokenPayload, "1h");
+    const refreshToken = createRefreshToken(tokenPayload); // expire time => 30day
     const userWithoutPassword = user.toObject();
     const { password: _, ...userResponse } = userWithoutPassword;
 
-    try {
-      const existingPatient = await Patient.findOne({ email });
+    const existingPatient = await Patient.findOne({ email });
 
-      if (existingPatient) {
-        return res
-          .status(400)
-          .json({ message: "Patient with this email already exists" });
-      }
-
-      const newPatient = await Patient.create({
-        name,
-        age,
-        gender,
-        phone,
-        email,
-        userId: userResponse._id,
-      });
-
-      // res.status(201).json(newPatient);
-    } catch (error) {
-      // res.status(500).json({ message: "Error creating patient", error });
+    if (existingPatient) {
+      return res
+        .status(400)
+        .json({ message: "Patient with this email already exists" });
     }
+
+    const newPatient = await Patient.create({
+      name,
+      age,
+      gender,
+      phone,
+      email,
+      userId: userResponse._id,
+    });
+    await RefreshToken.create({
+      token: refreshToken,
+      userId: newPatient._id,
+    });
+
+    // res.status(201).json(newPatient);
 
     return res.json({
       success: true,
       message: "Account created success",
-      token,
+      accessToken,
+      refreshToken,
       user: userResponse,
     });
-  } catch (error) {
-    next(error);
   }
-};
+);
 
 // Login patient Account
 export const signinController = async (
@@ -127,18 +101,76 @@ export const signinController = async (
     if (!isPasswordCorrect) {
       throw new ErrorHandler("Password is not match", 400);
     }
-    const token = createToken(user, "7d");
+    const tokenPayload = {
+      email: user.email,
+      userId: user._id,
+
+      role: user.role,
+    };
+
+    const accessToken = createAcessToken(tokenPayload, "1h");
+    const refreshToken = createRefreshToken(tokenPayload); // expire time => 30 day
+
+    await RefreshToken.create({
+      token: refreshToken,
+      userId: user._id,
+    });
+
     const userWithoutPassword = user.toObject();
     const { password: _, ...userResponse } = userWithoutPassword;
 
     return res.json({
       success: true,
       message: "Signin success",
-      token,
       user: userResponse,
+      accessToken,
+      refreshToken,
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// generet token
+export const getAccessToken = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"]?.split(" ")[1]; /// refresh token
+  if (!token) return res.sendStatus(401);
+
+  const refreshSecret = process.env.JWT_REFRESH_SECRET as string;
+  try {
+    const decoded: any = jwt.verify(token, refreshSecret as string);
+
+    const tokenUser = decoded.user;
+
+    // checking if the user is exist
+    const user = await User.findById(tokenUser.userId);
+
+    if (!user) {
+      throw new ErrorHandler("This user is not found !", 404);
+    }
+
+    const refreshToken = await RefreshToken.findOne({
+      token,
+      userId: user._id,
+    });
+
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, message: "Unauthotized" });
+    }
+    const jwtPayload = {
+      userId: user.id,
+      role: user.role,
+    };
+
+    const accessToken = createAcessToken(jwtPayload, "1h");
+    res.json({
+      success: true,
+      data: null,
+      message: "access token retive successfully",
+      token: accessToken,
+    });
+  } catch (error) {
+    res.status(401).json({ success: false, message: "unautorized access" });
   }
 };
 
@@ -206,7 +238,7 @@ export const forgotPassword = catchAsyncError(async (req, res) => {
       .json({ success: false, message: "No user found with this email!" });
   }
 
-  const token = createToken(
+  const token = createAcessToken(
     { id: user._id, role: user.role, email: user.email },
     "5m"
   );
@@ -231,7 +263,7 @@ export const recoverPassword = catchAsyncError(async (req, res) => {
 
   const decoded = jwt.verify(
     token,
-    process.env.JWT_SECRET as string
+    process.env.JWT_ACCESS_SECRET as string
   ) as JwtPayload;
 
   //localhost:5000?id=6441555asfasdf5&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJBLTAwMDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDI4NTA2MTcsImV4cCI6MTcwMjg1MTIxN30.-T90nRaz8-KouKki1DkCSMAbsHyb9yDi0djZU3D6QO4
