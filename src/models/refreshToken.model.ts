@@ -11,7 +11,12 @@ const RefreshTokenSchema = new Schema(
       ref: "User",
       required: true,
     },
+    expiration_time: {
+      type: Number,
+      required: true,
+    },
   },
+
   {
     timestamps: true,
   }

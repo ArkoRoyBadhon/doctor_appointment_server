@@ -63,9 +63,12 @@ export const registerCustomerController = catchAsyncError(
       email,
       userId: userResponse._id,
     });
+    const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+
     await RefreshToken.create({
       token: refreshToken,
       userId: newPatient._id,
+      expiration_time: expiresAt,
     });
 
     // res.status(201).json(newPatient);
@@ -111,9 +114,11 @@ export const signinController = async (
     const accessToken = createAcessToken(tokenPayload, "1h");
     const refreshToken = createRefreshToken(tokenPayload); // expire time => 30 day
 
+    const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
     await RefreshToken.create({
       token: refreshToken,
       userId: user._id,
+      expiration_time: expiresAt,
     });
 
     const userWithoutPassword = user.toObject();
@@ -138,7 +143,22 @@ export const getAccessToken = async (req: Request, res: Response) => {
 
   const refreshSecret = process.env.JWT_REFRESH_SECRET as string;
   try {
-    const decoded: any = jwt.verify(token, refreshSecret as string);
+    const refreshToken = await RefreshToken.findOne({
+      token,
+    });
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, message: "Unauthotized" });
+    }
+    const today = new Date().getTime();
+
+    if (today > refreshToken.expiration_time) {
+      return res.status(401).json({ success: false, message: "Unauthotized" });
+    }
+
+    const decoded: any = jwt.verify(
+      refreshToken.token as string,
+      refreshSecret as string
+    );
 
     const tokenUser = decoded.user;
 
@@ -149,14 +169,6 @@ export const getAccessToken = async (req: Request, res: Response) => {
       throw new ErrorHandler("This user is not found !", 404);
     }
 
-    const refreshToken = await RefreshToken.findOne({
-      token,
-      userId: user._id,
-    });
-
-    if (!refreshToken) {
-      return res.status(401).json({ success: false, message: "Unauthotized" });
-    }
     const jwtPayload = {
       userId: user.id,
       role: user.role,
