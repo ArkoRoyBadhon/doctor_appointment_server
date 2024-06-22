@@ -3,13 +3,16 @@ import catchAsyncError from "../middlewares/catchAsyncErrors";
 import { validationResult } from "express-validator";
 import Doctor from "../models/doctor.model";
 import Appointment from "../models/appointment.model";
+import ErrorHandler from "../utils/errorhandler";
+import User from "../models/user.model";
+import bcrypt from "bcryptjs";
 
 export const createDoctorController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
-    const userId = req.user
+    const userId = req.user;
 
-    if(!userId) {
+    if (!userId) {
       return res.status(422).json({
         errors: "Something went wrong",
       });
@@ -28,10 +31,36 @@ export const createDoctorController = catchAsyncError(
       const existingDoctor = await Doctor.findOne({ email });
 
       if (existingDoctor) {
-        return res.status(400).json({ message: "Doctor with this email already exists" });
+        return res
+          .status(400)
+          .json({ message: "Doctor with this email already exists" });
       }
 
-      const newDoctor = await Doctor.create({ name, specialization, phone, email, availability, userId: userId?._id });
+      const newDoctor = await Doctor.create({
+        name,
+        specialization,
+        phone,
+        email,
+        availability,
+        userId: userId?._id,
+      });
+
+      // user create for doctor
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        throw new ErrorHandler("This email is already used!", 400);
+      }
+
+      const password = "12345678";
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = await User.create({
+        email,
+        name,
+        password: hashedPassword,
+        role: "doctor",
+      });
 
       res.status(201).json(newDoctor);
     } catch (error) {
@@ -51,7 +80,9 @@ export const getAllDoctorsController = catchAsyncError(
         doctors,
       });
     } catch (error) {
-      return res.status(500).json({ success: false, msg: "Error retrieving doctors.", error });
+      return res
+        .status(500)
+        .json({ success: false, msg: "Error retrieving doctors.", error });
     }
   }
 );
@@ -73,11 +104,12 @@ export const getDoctorByIdController = catchAsyncError(
         doctor,
       });
     } catch (error) {
-      return res.status(500).json({ success: false, msg: "Error retrieving doctor.", error });
+      return res
+        .status(500)
+        .json({ success: false, msg: "Error retrieving doctor.", error });
     }
   }
 );
-
 
 export const updateDoctorController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -108,17 +140,32 @@ export const updateDoctorController = catchAsyncError(
 
       await doctor.save();
 
+      console.log("user i =======", doctor?.userId);
+
+      const UserUpdate = await User.findByIdAndUpdate(
+        doctor?.userId,
+        {
+          ...req.body,
+        },
+        {
+          new: true,
+        }
+      );
+
+      console.log(UserUpdate);
+
       return res.status(200).json({
         success: true,
         msg: "Doctor updated successfully.",
         doctor,
       });
     } catch (error) {
-      return res.status(500).json({ success: false, msg: "Error updating doctor.", error });
+      return res
+        .status(500)
+        .json({ success: false, msg: "Error updating doctor.", error });
     }
   }
 );
-
 
 export const deleteDoctorController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -141,7 +188,9 @@ export const deleteDoctorController = catchAsyncError(
         msg: "Doctor deleted successfully and associated appointments canceled.",
       });
     } catch (error) {
-      return res.status(500).json({ success: false, msg: "Error deleting doctor.", error });
+      return res
+        .status(500)
+        .json({ success: false, msg: "Error deleting doctor.", error });
     }
   }
 );

@@ -1,10 +1,9 @@
 import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
-import jwt from "jsonwebtoken";
 import ErrorHandler from "../utils/errorhandler";
 import createToken from "../utils/jwtToken";
-import patientModel from "../models/patient.model";
+import Patient from "../models/patient.model";
 import User from "../models/user.model";
 
 // import shopModel from "../models/shop.model";
@@ -21,7 +20,7 @@ export const checkEmailController = async (
     if (!errors.isEmpty()) {
       throw new ErrorHandler(errors.array()[0].msg, 422);
     }
-    const existingEmail = await patientModel.findOne({ email });
+    const existingEmail = await Patient.findOne({ email });
 
     if (existingEmail) {
       return res.json({
@@ -48,7 +47,7 @@ export const registerCustomerController = async (
   next: NextFunction
 ) => {
   try {
-    const { email, name, password } = req.body;
+    const { email, name, password, age, gender, phone } = req.body;
     const errors = validationResult(req);
     console.log("sss", req.body);
     
@@ -71,6 +70,29 @@ export const registerCustomerController = async (
     const userWithoutPassword = user.toObject();
     const { password: _, ...userResponse } = userWithoutPassword;
 
+    try {
+      const existingPatient = await Patient.findOne({ email });
+
+      if (existingPatient) {
+        return res
+          .status(400)
+          .json({ message: "Patient with this email already exists" });
+      }
+
+      const newPatient = await Patient.create({
+        name,
+        age,
+        gender,
+        phone,
+        email,
+        userId: userResponse._id
+      });
+
+      // res.status(201).json(newPatient);
+    } catch (error) {
+      // res.status(500).json({ message: "Error creating patient", error });
+    }
+
     return res.json({
       success: true,
       message: "Account created success",
@@ -83,30 +105,7 @@ export const registerCustomerController = async (
 };
 
 
-// Activation by Verify Email
-export const activationController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { token } = req.body;
-    if (!token) {
-      return res.json({ message: "Error: Token missing." });
-    }
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
-
-    return res.json({
-      success: true,
-      message: "Signup success",
-      token: "",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// Login customer Account
+// Login patient Account
 export const signinController = async (
   req: Request,
   res: Response,
@@ -144,39 +143,39 @@ export const signinController = async (
 
 
 // Forgot Password
-export const forgotPasswordController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { email } = req.body;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new ErrorHandler(errors.array()[0].msg, 422);
-    }
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw new ErrorHandler("User with that email does not exist", 400);
-    }
-  } catch (error) {
-    next(error);
-  }
-};
+// export const forgotPasswordController = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const { email } = req.body;
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       throw new ErrorHandler(errors.array()[0].msg, 422);
+//     }
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       throw new ErrorHandler("User with that email does not exist", 400);
+//     }
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
-// Reset Password
-export const resetPasswordController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new ErrorHandler(errors.array()[0].msg, 422);
-    }
-    return res.json({ message: "Password reset successful" });
-  } catch (error) {
-    next(error);
-  }
-};
+// // Reset Password
+// export const resetPasswordController = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       throw new ErrorHandler(errors.array()[0].msg, 422);
+//     }
+//     return res.json({ message: "Password reset successful" });
+//   } catch (error) {
+//     next(error);
+//   }
+// };

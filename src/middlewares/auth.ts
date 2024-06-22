@@ -11,9 +11,6 @@ export const isAuthenticatedUser = async (
   try {
     const getToken = req.header("Authorization");
 
-    console.log("token =========", getToken);
-    
-
     if (!getToken)
       return res.status(400).json({ msg: "Invalid Authentication." });
 
@@ -28,6 +25,9 @@ export const isAuthenticatedUser = async (
     );
     if (!user) return res.status(400).json({ msg: "User does not exist." });
 
+    console.log("user =======", user);
+    
+
     req.user = user;
 
     next();
@@ -38,10 +38,11 @@ export const isAuthenticatedUser = async (
 
 export const authorizeRoles = (...roles: any) => {
   return (req: any, res: Response, next: NextFunction) => {
-    if (!roles.includes(req.user?.user_type)) {
+
+    if (!roles.includes(req.user?.role)) {
       return next(
         new ErrorHandler(
-          `User type: ${req.user?.user_type} is not allowed to access this resouce `,
+          `User type: ${req.user?.role} is not allowed to access this resouce `,
           403
         )
       );
