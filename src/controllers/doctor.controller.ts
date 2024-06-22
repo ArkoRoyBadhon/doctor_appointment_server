@@ -140,8 +140,6 @@ export const updateDoctorController = catchAsyncError(
 
       await doctor.save();
 
-      console.log("user i =======", doctor?.userId);
-
       const UserUpdate = await User.findByIdAndUpdate(
         doctor?.userId,
         {
@@ -151,8 +149,6 @@ export const updateDoctorController = catchAsyncError(
           new: true,
         }
       );
-
-      console.log(UserUpdate);
 
       return res.status(200).json({
         success: true,
@@ -182,6 +178,8 @@ export const deleteDoctorController = catchAsyncError(
         { doctor: doctor._id, status: { $ne: "completed" } },
         { status: "canceled" }
       );
+
+      await User.findByIdAndDelete(doctor?.userId)
 
       return res.status(200).json({
         success: true,
