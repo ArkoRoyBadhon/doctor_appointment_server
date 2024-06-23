@@ -72,7 +72,19 @@ export const createDoctorController = catchAsyncError(
 export const getAllDoctorsController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const doctors = await Doctor.find();
+      const { name, specialization } = req.query;
+
+      const query: any = {};
+
+      if (name) {
+        query.name = { $regex: name, $options: "i" };
+      }
+
+      if (specialization) {
+        query.specialization = { $regex: specialization, $options: "i" };
+      }
+
+      const doctors = await Doctor.find(query);
 
       return res.status(200).json({
         success: true,
@@ -86,6 +98,24 @@ export const getAllDoctorsController = catchAsyncError(
     }
   }
 );
+
+// export const getAllDoctorsController = catchAsyncError(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//       const doctors = await Doctor.find();
+
+//       return res.status(200).json({
+//         success: true,
+//         msg: "Doctors have been retrieved successfully.",
+//         doctors,
+//       });
+//     } catch (error) {
+//       return res
+//         .status(500)
+//         .json({ success: false, msg: "Error retrieving doctors.", error });
+//     }
+//   }
+// );
 
 export const getDoctorByIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
