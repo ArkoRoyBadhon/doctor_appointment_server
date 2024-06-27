@@ -1,10 +1,11 @@
-import mongoose, { Schema, model, Document } from "mongoose";
+import mongoose, { Document, Schema, model } from "mongoose";
 import { IReview } from "./review.model";
 
 interface IAvailability {
   day: string;
   startTime: string;
   endTime: string;
+  maxPatient: number;
 }
 
 export interface IDoctor extends Document {
@@ -13,14 +14,15 @@ export interface IDoctor extends Document {
   phone: string;
   email: string;
   availability: IAvailability[];
-  reviews?: IReview['_id'][];
-  userId?: any
+  reviews?: IReview["_id"][];
+  userId?: any;
 }
 
 const availabilitySchema = new Schema<IAvailability>({
   day: { type: String, required: true },
   startTime: { type: String, required: true },
   endTime: { type: String, required: true },
+  maxPatient: { type: Number, require: true },
 });
 
 const doctorSchema = new Schema<IDoctor>(
@@ -32,8 +34,7 @@ const doctorSchema = new Schema<IDoctor>(
     availability: { type: [availabilitySchema], required: true },
     userId: {
       type: mongoose.Types.ObjectId,
-      
-    }
+    },
   },
   {
     timestamps: true,
