@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import catchAsyncError from "../middlewares/catchAsyncErrors";
 import { validationResult } from "express-validator";
+import QueryBuilder from "../builder/QueryBuilder";
+import catchAsyncError from "../middlewares/catchAsyncErrors";
 import Appointment from "../models/appointment.model";
 import Doctor from "../models/doctor.model";
 
@@ -140,6 +141,32 @@ export const deleteAppointmentController = catchAsyncError(
       return res
         .status(500)
         .json({ success: false, msg: "Error deleting appointment.", error });
+    }
+  }
+);
+
+export const getallAppointmentByDoctor = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user;
+      if (!user) return;
+
+      const query = Appointment.find({ doctor: user._id })
+        .populate("doctor", "name specialization")
+        .populate("patient", "name email");
+      const appointmentsquery = new QueryBuilder(query, req.query)
+        .filter()
+        .paginate();
+      const appointments = await appointmentsquery.modelQuery;
+      return res.status(200).json({
+        success: true,
+        msg: "Appointments have been retrieved successfully.",
+        appointments,
+      });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ success: false, msg: "Error retrieving appointments.", error });
     }
   }
 );
