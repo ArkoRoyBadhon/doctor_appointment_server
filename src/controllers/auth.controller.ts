@@ -77,7 +77,7 @@ export const registerCustomerController = catchAsyncError(
       success: true,
       message: "Account created success",
       accessToken,
-      refreshToken,
+      // refreshToken,
       user: userResponse,
     });
   }
@@ -140,6 +140,8 @@ export const signinController = async (
 export const getAccessToken = async (req: Request, res: Response) => {
   const token = req.headers["authorization"]?.split(" ")[1]; /// refresh token
   if (!token) return res.sendStatus(401);
+
+// asdfasfd. decode
 
   const refreshSecret = process.env.JWT_REFRESH_SECRET as string;
   try {
