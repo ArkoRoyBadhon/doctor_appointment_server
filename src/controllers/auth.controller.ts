@@ -4,6 +4,7 @@ import { validationResult } from "express-validator";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import catchAsyncError from "../middlewares/catchAsyncErrors";
 import Patient from "../models/patient.model";
+import Doctor from "../models/doctor.model";
 import RefreshToken from "../models/refreshToken.model";
 import User from "../models/user.model";
 import ErrorHandler from "../utils/errorhandler";
@@ -83,7 +84,77 @@ export const registerCustomerController = catchAsyncError(
   }
 );
 
-// Login patient Account
+export const registerDoctorController = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { name, specialization, phone, email, password, role, availability } = req.body;
+    const errors = validationResult(req);
+    console.log("sss", req.body);
+
+    if (!errors.isEmpty()) {
+      throw new ErrorHandler(errors.array()[0].msg, 422);
+    }
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      throw new ErrorHandler("This email is already used!", 400);
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      email,
+      name,
+      password: hashedPassword,
+      role
+    });
+
+    // hash password salt id
+    const tokenPayload = {
+      email: user.email,
+      userId: user._id,
+      role: user.role,
+    };
+
+    const accessToken = createAcessToken(tokenPayload, "1h");
+    const refreshToken = createRefreshToken(tokenPayload); // expire time => 30day
+    const userWithoutPassword = user.toObject();
+    const { password: _, ...userResponse } = userWithoutPassword;
+
+    const existingDoctor = await Doctor.findOne({ email });
+
+    if (existingDoctor) {
+      return res
+        .status(400)
+        .json({ message: "Doctor with this email already exists" });
+    }
+
+    const newDoctor = await Doctor.create({
+      name,
+      phone,
+      email,
+      specialization,
+      availability,
+      userId: userResponse._id,
+    });
+    const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+
+    await RefreshToken.create({
+      token: refreshToken,
+      userId: newDoctor._id,
+      expiration_time: expiresAt,
+    });
+
+    // res.status(201).json(newPatient);
+
+    return res.json({
+      success: true,
+      message: "Account created success",
+      accessToken,
+      refreshToken,
+      user: userResponse,
+    });
+  }
+);
+
+// Login user Account
 export const signinController = async (
   req: Request,
   res: Response,
