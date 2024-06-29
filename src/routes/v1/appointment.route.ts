@@ -5,6 +5,7 @@ import {
   getAllAppointmentsController,
   getAppointmentByIdController,
   getallAppointmentByDoctor,
+  getallAppointmentByUser,
   updateAppointmentController,
 } from "../../controllers/appointment.controller";
 import { authorizeRoles, isAuthenticatedUser } from "../../middlewares/auth";
@@ -16,5 +17,8 @@ router.get("/a/get/:id",  getAppointmentByIdController);
 router.put("/a/update/:id", isAuthenticatedUser, authorizeRoles("admin", "patient"), updateAppointmentController);
 router.delete("/a/delete/:id", isAuthenticatedUser, authorizeRoles("admin", "patient"), deleteAppointmentController);
 router.get("/a/doctor/appointments",isAuthenticatedUser,authorizeRoles("doctor"),getallAppointmentByDoctor)
+router.get("/a/patient/get",
+  // isAuthenticatedUser,authorizeRoles("patient"),
+  getallAppointmentByUser)
 
 export default router;

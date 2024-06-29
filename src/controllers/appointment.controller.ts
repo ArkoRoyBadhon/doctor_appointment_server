@@ -4,6 +4,8 @@ import QueryBuilder from "../builder/QueryBuilder";
 import catchAsyncError from "../middlewares/catchAsyncErrors";
 import Appointment from "../models/appointment.model";
 import Doctor from "../models/doctor.model";
+import User from "../models/user.model";
+import patientModel from "../models/patient.model";
 
 export const createAppointmentController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -19,7 +21,11 @@ export const createAppointmentController = catchAsyncError(
     const data = req.body;
 
     try {
+      console.log("docccc data", data);
       const existDoctor = await Doctor.findById(data?.doctor);
+
+      console.log("docccc", existDoctor);
+      
 
       if (!existDoctor) {
         return res.status(404).json({ message: "Doctor not found" });
@@ -152,6 +158,49 @@ export const getallAppointmentByDoctor = catchAsyncError(
       if (!user) return;
 
       const query = Appointment.find({ doctor: user._id })
+        .populate("doctor", "name specialization")
+        .populate("patient", "name email");
+      const appointmentsquery = new QueryBuilder(query, req.query)
+        .filter()
+        .paginate();
+      const appointments = await appointmentsquery.modelQuery;
+      return res.status(200).json({
+        success: true,
+        msg: "Appointments have been retrieved successfully.",
+        appointments,
+      });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ success: false, msg: "Error retrieving appointments.", error });
+    }
+  }
+);
+
+export const getallAppointmentByUser = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // const user = req.user;
+      // const user.userId = "667fa261c8fd7dfbd8e6b961";
+      // if (!user) return;
+
+      const existUser = await User.findById("667fa261c8fd7dfbd8e6b961")
+      
+      
+      if(!existUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const existPatient = await patientModel.find({email: existUser.email})
+
+      if(!existPatient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+
+      console.log("aaaa", existPatient[0]);
+
+
+      const query = Appointment.find({ patient: existPatient[0]._id })
         .populate("doctor", "name specialization")
         .populate("patient", "name email");
       const appointmentsquery = new QueryBuilder(query, req.query)

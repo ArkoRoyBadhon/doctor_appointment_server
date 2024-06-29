@@ -10,6 +10,7 @@ export const isAuthenticatedUser = async (
 ) => {
   try {
     const getToken = req.header("Authorization");
+// console.log(getToken);
 
     if (!getToken)
       return res.status(400).json({ msg: "Invalid Authentication." });
@@ -20,12 +21,11 @@ export const isAuthenticatedUser = async (
     if (!decoded)
       return res.status(400).json({ msg: "Invalid Authentication." });
 
-    const user = await User.findOne({ _id: decoded?.user?._id }).select(
+    const user = await User.findOne({ _id: decoded?.user?.userId }).select(
       "-password"
     );
     if (!user) return res.status(400).json({ msg: "User does not exist." });
 
-    console.log("user =======", user);
     
 
     req.user = user;
