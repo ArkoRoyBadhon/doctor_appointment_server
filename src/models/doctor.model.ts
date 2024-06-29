@@ -13,7 +13,13 @@ export interface IDoctor extends Document {
   name: string;
   specialization: mongoose.Types.ObjectId;
   phone: string;
+  gender: string;
   email: string;
+  location: string;
+  picture: string;
+  about: string;
+  rating: number;
+  fee: number;
   availability: IAvailability[];
   reviews?: IReview["_id"][];
   userId?: any;
@@ -29,15 +35,23 @@ const availabilitySchema = new Schema<IAvailability>({
 const doctorSchema = new Schema<IDoctor>(
   {
     name: { type: String, required: true },
-    specialization: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "Specialization",
-    },
+    specialization: { type: mongoose.Schema.Types.ObjectId, required: true },
+    picture: { type: String, required: false },
     phone: { type: String, required: true },
+    gender: {
+      type: String,
+      required: true,
+      enum: ["male", "female", "others"],
+    },
+    about: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    availability: { type: [availabilitySchema], required: true },
-    userId: { type: mongoose.Types.ObjectId },
+    location: { type: String, required: true },
+    fee: { type: Number, required: true },
+    rating: { type: Number, required: true, max: 5, min: 1 },
+    availability: { type: [availabilitySchema], required: false, default: [] },
+    userId: {
+      type: mongoose.Types.ObjectId,
+    },
   },
   {
     timestamps: true,

@@ -78,24 +78,53 @@ export const createDoctorController = catchAsyncError(
 export const getAllDoctorsController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, specialization } = req.query;
-
+      const {
+        name,
+        specialization,
+        gender,
+        minFee,
+        maxFee,
+        page = 1,
+        limit = 10,
+      } = req.query;
       const query: any = {};
 
+      // Name filter
       if (name) {
         query.name = { $regex: name, $options: "i" };
       }
 
+      // Specialization filter
       if (specialization) {
         query.specialization = { $regex: specialization, $options: "i" };
       }
 
-      const doctors = await Doctor.find(query);
+      // Gender filter
+      if (gender) {
+        query.gender = gender;
+      }
+
+      // Fee filter
+      if (minFee && maxFee) {
+        query.fee = { $gte: Number(minFee), $lte: Number(maxFee) };
+      } else if (minFee) {
+        query.fee = { $gte: Number(minFee) };
+      } else if (maxFee) {
+        query.fee = { $lte: Number(maxFee) };
+      }
+
+      // Pagination
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const doctors = await Doctor.find(query).skip(skip).limit(Number(limit));
 
       return res.status(200).json({
         success: true,
         msg: "Doctors have been retrieved successfully.",
         doctors,
+        page: Number(page),
+        limit: Number(limit),
+        total: await Doctor.countDocuments(query),
       });
     } catch (error) {
       return res
@@ -104,6 +133,35 @@ export const getAllDoctorsController = catchAsyncError(
     }
   }
 );
+
+// export const getAllDoctorsController = catchAsyncError(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//       const { name, specialization } = req.query;
+//       const query: any = {};
+
+//       if (name) {
+//         query.name = { $regex: name, $options: "i" };
+//       }
+
+//       if (specialization) {
+//         query.specialization = { $regex: specialization, $options: "i" };
+//       }
+
+//       const doctors = await Doctor.find(query);
+
+//       return res.status(200).json({
+//         success: true,
+//         msg: "Doctors have been retrieved successfully.",
+//         doctors,
+//       });
+//     } catch (error) {
+//       return res
+//         .status(500)
+//         .json({ success: false, msg: "Error retrieving doctors.", error });
+//     }
+//   }
+// );
 
 // export const getAllDoctorsController = catchAsyncError(
 //   async (req: Request, res: Response, next: NextFunction) => {
@@ -131,7 +189,9 @@ export const getDoctorByIdController = catchAsyncError(
       const doctor = await Doctor.findById(id).populate("reviews");
 
       if (!doctor) {
-        return res.status(404).json({ message: "Doctor not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "Doctor not found" });
       }
 
       return res.status(200).json({
@@ -149,14 +209,14 @@ export const getDoctorByIdController = catchAsyncError(
 
 export const updateDoctorController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
+    // const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      const firstError = errors.array().map((error) => error.msg)[0];
-      return res.status(422).json({
-        errors: firstError,
-      });
-    }
+    // if (!errors.isEmpty()) {
+    //   const firstError = errors.array().map((error) => error.msg)[0];
+    //   return res.status(422).json({
+    //     errors: firstError,
+    //   });
+    // }
 
     const { id } = req.params;
     const { name, specialization, phone, email, availability } = req.body;
@@ -168,28 +228,32 @@ export const updateDoctorController = catchAsyncError(
         return res.status(404).json({ message: "Doctor not found" });
       }
 
-      doctor.name = name || doctor.name;
-      doctor.specialization = specialization || doctor.specialization;
-      doctor.phone = phone || doctor.phone;
-      doctor.email = email || doctor.email;
-      doctor.availability = availability || doctor.availability;
+      // doctor.name = name || doctor.name;
+      // doctor.specialization = specialization || doctor.specialization;
+      // doctor.phone = phone || doctor.phone;
+      // doctor.email = email || doctor.email;
+      // doctor.availability = availability || doctor.availability;
 
-      await doctor.save();
+      // await doctor.save();
 
-      const UserUpdate = await User.findByIdAndUpdate(
-        doctor?.userId,
-        {
-          ...req.body,
-        },
-        {
-          new: true,
-        }
-      );
+      // const UserUpdate = await User.findByIdAndUpdate(
+      //   doctor?.userId,
+      //   {
+      //     ...req.body,
+      //   },
+      //   {
+      //     new: true,
+      //   }
+      // );
+
+      const updateDoctor = await Doctor.findByIdAndUpdate(id, req.body, {
+        new: true,
+      });
 
       return res.status(200).json({
         success: true,
         msg: "Doctor updated successfully.",
-        doctor,
+        doctor: updateDoctor,
       });
     } catch (error) {
       return res
@@ -215,7 +279,7 @@ export const deleteDoctorController = catchAsyncError(
         { status: "canceled" }
       );
 
-      await User.findByIdAndDelete(doctor?.userId)
+      await User.findByIdAndDelete(doctor?.userId);
 
       return res.status(200).json({
         success: true,
