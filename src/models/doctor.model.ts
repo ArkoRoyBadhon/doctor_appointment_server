@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema, model } from "mongoose";
 import { IReview } from "./review.model";
+import { IAppointment } from "./appointment.model";
 
 interface IAvailability {
   day: string;
@@ -22,7 +23,7 @@ const availabilitySchema = new Schema<IAvailability>({
   day: { type: String, required: true },
   startTime: { type: String, required: true },
   endTime: { type: String, required: true },
-  maxPatient: { type: Number, require: true },
+  maxPatient: { type: Number, required: true },
 });
 
 const doctorSchema = new Schema<IDoctor>(
@@ -31,10 +32,8 @@ const doctorSchema = new Schema<IDoctor>(
     specialization: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    availability: { type: [availabilitySchema], required: false, default:[] },
-    userId: {
-      type: mongoose.Types.ObjectId,
-    },
+    availability: { type: [availabilitySchema], required: true },
+    userId: { type: mongoose.Types.ObjectId },
   },
   {
     timestamps: true,
@@ -42,6 +41,13 @@ const doctorSchema = new Schema<IDoctor>(
     toObject: { virtuals: true },
   }
 );
+
+doctorSchema.virtual("appointments", {
+  ref: "Appointment",
+  localField: "_id",
+  foreignField: "doctor",
+  justOne: false,
+});
 
 doctorSchema.virtual("reviews", {
   ref: "Review",

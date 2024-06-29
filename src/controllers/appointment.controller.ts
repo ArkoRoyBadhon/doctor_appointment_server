@@ -7,6 +7,7 @@ import Doctor from "../models/doctor.model";
 import User from "../models/user.model";
 import patientModel from "../models/patient.model";
 
+
 export const createAppointmentController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -21,15 +22,17 @@ export const createAppointmentController = catchAsyncError(
     const data = req.body;
 
     try {
-      console.log("docccc data", data);
       const existDoctor = await Doctor.findById(data?.doctor);
-
-      console.log("docccc", existDoctor);
-      
 
       if (!existDoctor) {
         return res.status(404).json({ message: "Doctor not found" });
       }
+
+      // const availabilityCheck = await checkSlotAvailability(data.doctor, new Date(data.date), data.time);
+
+      // if (!availabilityCheck.available) {
+      //   return res.status(400).json({ message: availabilityCheck.message });
+      // }
 
       const newAppointment = await Appointment.create(data);
 
@@ -177,45 +180,99 @@ export const getallAppointmentByDoctor = catchAsyncError(
   }
 );
 
-export const getallAppointmentByUser = catchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // const user = req.user;
-      // const user.userId = "667fa261c8fd7dfbd8e6b961";
-      // if (!user) return;
+// export const getallAppointmentByUser = catchAsyncError(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//       const user = req.user;
+//       console.log("userid mango", user);
+      
+//       // const user.userId = "667fa261c8fd7dfbd8e6b961";
+//       if (!user) return;
 
-      const existUser = await User.findById("667fa261c8fd7dfbd8e6b961")
+//       const existUser = await User.findById(user?._id)
       
       
-      if(!existUser) {
+//       if(!existUser) {
+//         return res.status(404).json({ message: "User not found" });
+//       }
+      
+//       const existPatient = await patientModel.find({email: existUser.email})
+
+//       if(!existPatient) {
+//         return res.status(404).json({ message: "Patient not found" });
+//       }
+
+//       console.log("aaaa", existPatient[0]);
+
+
+//       const query = Appointment.find({ patient: existPatient[0]._id })
+//         .populate("doctor", "name specialization")
+//         .populate("patient", "name email");
+//       const appointmentsquery = new QueryBuilder(query, req.query)
+//         .filter()
+//         .paginate();
+//       const appointments = await appointmentsquery.modelQuery;
+//       return res.status(200).json({
+//         success: true,
+//         msg: "Appointments have been retrieved successfully.",
+//         appointments,
+//       });
+//     } catch (error) {
+//       return res
+//         .status(500)
+//         .json({ success: false, msg: "Error retrieving appointments.", error });
+//     }
+//   }
+// );
+
+
+export const getallAppointmentByUser = catchAsyncError(
+  async (req, res, next) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        console.log("No user found in request");
+        return res.status(401).json({ message: "Unauthorized access" });
+      }
+
+      console.log("user orange", user);
+
+      const existUser = await User.findById(user._id);
+      if (!existUser) {
+        console.log("User not found in database");
         return res.status(404).json({ message: "User not found" });
       }
-      
-      const existPatient = await patientModel.find({email: existUser.email})
 
-      if(!existPatient) {
-        return res.status(404).json({ message: "Patient not found" });
+      const existPatient = await patientModel.findOne({ email: existUser.email });
+      if (!existPatient) {
+        console.log("Patient not found in database");
+        return res.status(500).json({ message: "Patient not found" });
       }
 
-      console.log("aaaa", existPatient[0]);
+      console.log("Patient found", existPatient);
 
-
-      const query = Appointment.find({ patient: existPatient[0]._id })
+      const query = Appointment.find({ patient: existPatient._id })
         .populate("doctor", "name specialization")
         .populate("patient", "name email");
-      const appointmentsquery = new QueryBuilder(query, req.query)
-        .filter()
-        .paginate();
-      const appointments = await appointmentsquery.modelQuery;
+      
+      const appointmentsQuery = new QueryBuilder(query, req.query).filter().paginate();
+      const appointments = await appointmentsQuery.modelQuery;
+
+      console.log("Appointments retrieved", appointments);
+
       return res.status(200).json({
         success: true,
         msg: "Appointments have been retrieved successfully.",
         appointments,
       });
     } catch (error) {
-      return res
-        .status(500)
-        .json({ success: false, msg: "Error retrieving appointments.", error });
+      console.log("Error retrieving appointments", error);
+      return res.status(500).json({
+        success: false,
+        msg: "Error retrieving appointments.",
+        error: error,
+      });
     }
   }
 );
+

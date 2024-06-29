@@ -18,7 +18,7 @@ router.put("/a/update/:id", isAuthenticatedUser, authorizeRoles("admin", "patien
 router.delete("/a/delete/:id", isAuthenticatedUser, authorizeRoles("admin", "patient"), deleteAppointmentController);
 router.get("/a/doctor/appointments",isAuthenticatedUser,authorizeRoles("doctor"),getallAppointmentByDoctor)
 router.get("/a/patient/get",
-  // isAuthenticatedUser,authorizeRoles("patient"),
+  isAuthenticatedUser,authorizeRoles("patient"),
   getallAppointmentByUser)
 
 export default router;

@@ -16,22 +16,90 @@ import { createAcessToken, createRefreshToken } from "../utils/jwtToken";
 
 export const getAuthState = catchAsyncError(async (req, res) => {
   const user = req.user;
+
   if (!user) return res.json({ success: false });
-  let userData;
-  if (user.role === "doctor") {
-    userData = await Doctor.findOne({ userId: user._id });
+
+  try {
+    let userData;
+    if (user.role === "doctor") {
+      userData = await Doctor.findOne({ userId: user._id });
+    }
+    if (user.role === "patient") {
+      userData = await Patient.findOne({ userId: user._id });
+    } else {
+      userData = await User.findById(user._id);
+    }
+
+    if (userData) {
+      return res.json({
+        success: true,
+        message: "User info get successfull",
+        data: userData,
+      });
+    } else {
+      return res.json({
+        success: false,
+        message: "Failed",
+        // data: userData,
+      });
+    }
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: "User failed",
+    });
   }
-  if (user.role === "patient") {
-    userData = await Patient.findOne({ userId: user._id });
-  } else {
-    userData = await User.findById(user._id);
+});
+
+export const updateUserController = catchAsyncError(async (req, res) => {
+  const user = req.user;
+  const { name, age, gender, phone, email, address } = req.body;
+
+  if (!user) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
   }
 
-  res.json({
-    success: true,
-    message: "User info get successfull",
-    data: userData,
-  });
+  try {
+    let userData;
+    if (user.role === "doctor") {
+      userData = await Doctor.findOneAndUpdate(
+        { userId: user._id },
+        { name, phone, email, address },
+        { new: true, runValidators: true }
+      );
+    } else if (user.role === "patient") {
+      userData = await Patient.findOneAndUpdate(
+        { userId: user._id },
+        { name, age, gender, phone, email, address },
+        { new: true, runValidators: true }
+      );
+    } else {
+      userData = await User.findByIdAndUpdate(
+        user._id,
+        { name, email, phone, address },
+        { new: true, runValidators: true }
+      );
+    }
+
+    if (userData) {
+      res.json({
+        success: true,
+        message: "User info updated successfully",
+        data: userData,
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Failed to update user info",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
 });
 
 // Register customer Account

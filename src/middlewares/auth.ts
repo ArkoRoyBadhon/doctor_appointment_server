@@ -20,6 +20,8 @@ export const isAuthenticatedUser = async (
       token,
       process.env.JWT_ACCESS_SECRET as string
     );
+    console.log("desss", decoded);
+    
 
     if (!decoded)
       return res.status(400).json({ msg: "Invalid Authentication." });
@@ -30,7 +32,7 @@ export const isAuthenticatedUser = async (
     if (!user) return res.status(400).json({ msg: "User does not exist." });
 
     
-    console.log("user =======", user);
+    // console.log("user =======", user);
 
     req.user = user;
 

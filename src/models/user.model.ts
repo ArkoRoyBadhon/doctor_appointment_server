@@ -6,6 +6,7 @@ export interface IUser extends Document {
   password: string;
   role: "doctor" | "patient" | "admin";
   isAproved: boolean;
+  address: string
 }
 
 const userSchema = new Schema<IUser>(
@@ -14,6 +15,7 @@ const userSchema = new Schema<IUser>(
     isAproved: { type: Boolean, required: false,},
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    address: {type: String},
     role: {
       type: String,
       default: "patient",

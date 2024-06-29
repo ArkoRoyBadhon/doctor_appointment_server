@@ -10,9 +10,9 @@ import bcrypt from "bcryptjs";
 export const createDoctorController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
-    const userId = req.user;
+    const user = req.user;
 
-    if (!userId) {
+    if (!user) {
       return res.status(422).json({
         errors: "Something went wrong",
       });
@@ -25,7 +25,8 @@ export const createDoctorController = catchAsyncError(
       });
     }
 
-    const { name, specialization, phone, email, availability } = req.body;
+       
+    const { name, specialization, phone, password,  email, availability } = req.body;
 
     try {
       const existingDoctor = await Doctor.findOne({ email });
@@ -42,20 +43,25 @@ export const createDoctorController = catchAsyncError(
         phone,
         email,
         availability,
-        userId: userId?._id,
+        userId: user._id,
       });
 
-      // user create for doctor
+      // Check if a user with the same email already exists
       const existingEmail = await User.findOne({ email });
       if (existingEmail) {
-        throw new ErrorHandler("This email is already used!", 400);
+        return res.status(400).json({ message: "This email is already used!" });
       }
 
-      const password = "12345678";
+      // const password = "12345678";
+
+      // Validate password before hashing
+      if (!password) {
+        throw new Error("Password must be provided");
+      }
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const user = await User.create({
+      const userDoc = await User.create({
         email,
         name,
         password: hashedPassword,

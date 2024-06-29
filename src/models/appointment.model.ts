@@ -1,4 +1,4 @@
-import { Document, Schema, Types, model } from "mongoose";
+import mongoose, { Document, Schema, Types, model } from "mongoose";
 
 export interface IAppointment extends Document {
   doctor: Types.ObjectId;
