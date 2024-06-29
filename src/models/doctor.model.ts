@@ -10,7 +10,7 @@ interface IAvailability {
 
 export interface IDoctor extends Document {
   name: string;
-  specialization: string;
+  specialization: mongoose.Types.ObjectId;
   phone: string;
   email: string;
   availability: IAvailability[];
@@ -28,10 +28,14 @@ const availabilitySchema = new Schema<IAvailability>({
 const doctorSchema = new Schema<IDoctor>(
   {
     name: { type: String, required: true },
-    specialization: { type: String, required: true },
+    specialization: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "Specialization",
+    },
     phone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    availability: { type: [availabilitySchema], required: false, default:[] },
+    availability: { type: [availabilitySchema], required: false, default: [] },
     userId: {
       type: mongoose.Types.ObjectId,
     },
