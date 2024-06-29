@@ -3,8 +3,8 @@ import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import catchAsyncError from "../middlewares/catchAsyncErrors";
-import Patient from "../models/patient.model";
 import Doctor from "../models/doctor.model";
+import Patient from "../models/patient.model";
 import RefreshToken from "../models/refreshToken.model";
 import User from "../models/user.model";
 import ErrorHandler from "../utils/errorhandler";
@@ -33,6 +33,7 @@ export const registerCustomerController = catchAsyncError(
     const user = await User.create({
       email,
       name,
+      isAproved: true,
       password: hashedPassword,
     });
 
@@ -86,7 +87,8 @@ export const registerCustomerController = catchAsyncError(
 
 export const registerDoctorController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, specialization, phone, email, password, role, availability } = req.body;
+    const { name, specialization, phone, email, password, availability } =
+      req.body;
     const errors = validationResult(req);
     console.log("sss", req.body);
 
@@ -103,7 +105,8 @@ export const registerDoctorController = catchAsyncError(
       email,
       name,
       password: hashedPassword,
-      role
+      role: "doctor",
+      isAproved: false,
     });
 
     // hash password salt id
@@ -171,6 +174,16 @@ export const signinController = async (
     if (!user) {
       throw new ErrorHandler("Email is not registered", 400);
     }
+
+    if (!user.isAproved && user.role === "doctor") {
+      return res.json({
+        success: false,
+        messsage:
+          "Please wait for admin confrimation, your request is under review",
+        data: null,
+      });
+    }
+
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
       throw new ErrorHandler("Password is not match", 400);
@@ -212,7 +225,7 @@ export const getAccessToken = async (req: Request, res: Response) => {
   const token = req.headers["authorization"]?.split(" ")[1]; /// refresh token
   if (!token) return res.sendStatus(401);
 
-// asdfasfd. decode
+  // asdfasfd. decode
 
   const refreshSecret = process.env.JWT_REFRESH_SECRET as string;
   try {
