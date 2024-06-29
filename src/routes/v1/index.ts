@@ -16,5 +16,6 @@ router.use("/appointment", appointment);
 router.use("/billing", billing);
 router.use("/review", review);
 router.use("file", file);
+// router.use("/slots")
 
 export default router;

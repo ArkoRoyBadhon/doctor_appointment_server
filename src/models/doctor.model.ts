@@ -31,7 +31,7 @@ const doctorSchema = new Schema<IDoctor>(
     specialization: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    availability: { type: [availabilitySchema], required: true },
+    availability: { type: [availabilitySchema], required: false, default:[] },
     userId: {
       type: mongoose.Types.ObjectId,
     },

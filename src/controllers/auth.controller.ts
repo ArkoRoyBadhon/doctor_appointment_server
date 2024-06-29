@@ -14,6 +14,26 @@ import { createAcessToken, createRefreshToken } from "../utils/jwtToken";
 
 // Register Account
 
+export const getAuthState = catchAsyncError(async (req, res) => {
+  const user = req.user;
+  if (!user) return res.json({ success: false });
+  let userData;
+  if (user.role === "doctor") {
+    userData = await Doctor.findOne({ userId: user._id });
+  }
+  if (user.role === "patient") {
+    userData = await Patient.findOne({ userId: user._id });
+  } else {
+    userData = await User.findById(user._id);
+  }
+
+  res.json({
+    success: true,
+    message: "User info get successfull",
+    data: userData,
+  });
+});
+
 // Register customer Account
 export const registerCustomerController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -175,14 +195,14 @@ export const signinController = async (
       throw new ErrorHandler("Email is not registered", 400);
     }
 
-    if (!user.isAproved && user.role === "doctor") {
-      return res.json({
-        success: false,
-        messsage:
-          "Please wait for admin confrimation, your request is under review",
-        data: null,
-      });
-    }
+    // if (!user.isAproved && user.role === "doctor") {
+    //   return res.json({
+    //     success: false,
+    //     messsage:
+    //       "Please wait for admin confrimation, your request is under review",
+    //     data: null,
+    //   });
+    // }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {

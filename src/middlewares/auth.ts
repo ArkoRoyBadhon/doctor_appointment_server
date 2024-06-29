@@ -15,18 +15,20 @@ export const isAuthenticatedUser = async (
       return res.status(400).json({ msg: "Invalid Authentication." });
 
     const token = getToken.split(" ")[1];
-    const decoded: any = jwt.verify(token, process.env.JWT_ACCESS_SECRET as string);
+    const decoded: any = jwt.verify(
+      token,
+      process.env.JWT_ACCESS_SECRET as string
+    );
 
     if (!decoded)
       return res.status(400).json({ msg: "Invalid Authentication." });
 
-    const user = await User.findOne({ _id: decoded?.user?._id }).select(
+    const user = await User.findOne({ _id: decoded?.user?.userId }).select(
       "-password"
     );
     if (!user) return res.status(400).json({ msg: "User does not exist." });
 
     console.log("user =======", user);
-    
 
     req.user = user;
 
@@ -38,7 +40,6 @@ export const isAuthenticatedUser = async (
 
 export const authorizeRoles = (...roles: any) => {
   return (req: any, res: Response, next: NextFunction) => {
-
     if (!roles.includes(req.user?.role)) {
       return next(
         new ErrorHandler(
