@@ -21,6 +21,7 @@ const isAuthenticatedUser = (req, res, next) => __awaiter(void 0, void 0, void 0
     try {
         const getToken = req.header("Authorization");
         // console.log(getToken);
+        console.log(getToken);
         if (!getToken)
             return res.status(400).json({ msg: "Invalid Authentication." });
         const token = getToken.split(" ")[1];
