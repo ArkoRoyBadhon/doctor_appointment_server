@@ -8,6 +8,7 @@ export interface IPatient extends Document {
   phone: string;
   email: string;
   location: string;
+  picture: string;
   reviews?: IReview['_id'][];
   userId: any
 }
@@ -17,11 +18,11 @@ const patientSchema = new Schema<IPatient>({
   age: { type: Number, required: true },
   gender: { type: String, required: true },
   phone: { type: String, required: true },
+  picture: { type: String },
   email: { type: String, required: true, unique: true },
   location: { type: String },
   userId: {
     type: mongoose.Types.ObjectId,
-    
   }
 }, {
   timestamps: true,

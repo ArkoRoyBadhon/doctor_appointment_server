@@ -26,15 +26,18 @@ export const getAuthState = catchAsyncError(async (req, res) => {
     }
     if (user.role === "patient") {
       userData = await Patient.findOne({ userId: user._id });
-    } else {
+    } else if (user.role !== "doctor" && user.role !== "doctor") {
       userData = await User.findById(user._id);
     }
 
     if (userData) {
+      // console.log("ddd 2", userData);
+
       return res.json({
         success: true,
         message: "User info get successfull",
         data: userData,
+        role: user.role,
       });
     } else {
       return res.json({
@@ -53,7 +56,8 @@ export const getAuthState = catchAsyncError(async (req, res) => {
 
 export const updateUserController = catchAsyncError(async (req, res) => {
   const user = req.user;
-  const { name, age, gender, phone, email, location } = req.body;
+  const { name, age, gender, phone, picture, email, location, about, fee } =
+    req.body;
 
   if (!user) {
     return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -62,15 +66,17 @@ export const updateUserController = catchAsyncError(async (req, res) => {
   try {
     let userData;
     if (user.role === "doctor") {
+      // console.log("incoming", req.body);
+
       userData = await Doctor.findOneAndUpdate(
         { userId: user._id },
-        { name, phone, email, location },
+        { name, phone, email, location, picture, about, fee },
         { new: true, runValidators: true }
       );
     } else if (user.role === "patient") {
       userData = await Patient.findOneAndUpdate(
         { userId: user._id },
-        { name, age, gender, phone, email, location },
+        { name, age, gender, phone, email, location, picture },
         { new: true, runValidators: true }
       );
     } else {

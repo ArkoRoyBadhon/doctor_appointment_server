@@ -42,7 +42,7 @@ router.delete(
   deleteAppointmentController
 );
 router.get(
-  "/doctor/appointments",
+  "/a/doctor/get",
   isAuthenticatedUser,
   authorizeRoles("doctor"),
   getAllAppointmentsByDoctorController
