@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteBillingController = exports.updateBillingController = exports.getBillingByIdController = exports.getAllBillingController = exports.createBillingController = void 0;
+exports.deleteBillingController = exports.updateBillingController = exports.getBillingByIdController = exports.getAllBillingByUserController = exports.getAllBillingController = exports.createBillingController = void 0;
 const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErrors"));
 const express_validator_1 = require("express-validator");
 const billing_model_1 = __importDefault(require("../models/billing.model"));
@@ -66,6 +66,29 @@ exports.createBillingController = (0, catchAsyncErrors_1.default)((req, res, nex
 exports.getAllBillingController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const billingRecords = yield billing_model_1.default.find()
+            .populate("patient", "name email")
+            .populate("doctor", "name specialization");
+        return res.status(200).json({
+            success: true,
+            msg: "Billing records have been retrieved successfully.",
+            billingRecords,
+        });
+    }
+    catch (error) {
+        return res.status(500).json({
+            success: false,
+            msg: "Error retrieving billing records.",
+            error,
+        });
+    }
+}));
+exports.getAllBillingByUserController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.user;
+    if (!user) {
+        return res.status(500).json("user not found");
+    }
+    try {
+        const billingRecords = yield billing_model_1.default.findById(user.userId)
             .populate("patient", "name email")
             .populate("doctor", "name specialization");
         return res.status(200).json({

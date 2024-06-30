@@ -21,6 +21,7 @@ const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErr
 const appointment_model_1 = __importDefault(require("../models/appointment.model"));
 const doctor_model_1 = __importDefault(require("../models/doctor.model"));
 const patient_model_1 = __importDefault(require("../models/patient.model"));
+const appointment_model_2 = __importDefault(require("../models/appointment.model"));
 const user_model_1 = __importDefault(require("../models/user.model"));
 exports.createAppointmentController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
@@ -135,19 +136,25 @@ exports.updateAppointmentController = (0, catchAsyncErrors_1.default)((req, res,
     try {
         const appointment = yield appointment_model_1.default.findById(id);
         if (!appointment) {
-            return res.status(404).json({ message: "Appointment not found" });
+            return res.status(400).json({ message: "Appointment not found" });
         }
-        appointment.doctor = doctor || appointment.doctor;
-        appointment.patient = patient || appointment.patient;
-        appointment.date = date || appointment.date;
-        appointment.startTime = startTime || appointment.startTime;
-        appointment.endTime = endTime || appointment.endTime;
-        appointment.status = status || appointment.status;
-        yield appointment.save();
+        const info = {
+            doctor: doctor || appointment.doctor,
+            patient: patient || appointment.patient,
+            date: date || appointment.date,
+            startTime: startTime || appointment.startTime,
+            endTime: endTime || appointment.endTime,
+            status: status || appointment.status,
+        };
+        console.log("prev", appointment);
+        // await appointment.save();
+        const result = yield appointment_model_2.default.findByIdAndUpdate(id, info, {
+            new: true,
+        });
         return res.status(200).json({
             success: true,
             msg: "Appointment updated successfully.",
-            appointment,
+            result,
         });
     }
     catch (error) {
@@ -245,18 +252,19 @@ exports.getAllAppointmentsByDoctorController = (0, catchAsyncErrors_1.default)((
 exports.getAllAppointmentsByUserController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = req.user;
+        // console.log("user iddd", user);
         if (!user) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
         const existUser = yield user_model_1.default.findById(user._id);
         if (!existUser) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(400).json({ message: "User not found" });
         }
         const existPatient = yield patient_model_1.default.findOne({
             email: existUser.email,
         });
         if (!existPatient) {
-            return res.status(404).json({ message: "Patient not found" });
+            return res.status(400).json({ message: "Patient not found" });
         }
         const query = appointment_model_1.default.find({ patient: existPatient._id })
             .populate("doctor", "name specialization")

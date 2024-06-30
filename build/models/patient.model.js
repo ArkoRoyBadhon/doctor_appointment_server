@@ -30,6 +30,7 @@ const patientSchema = new mongoose_1.Schema({
     gender: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    location: { type: String },
     userId: {
         type: mongoose_1.default.Types.ObjectId,
     }

@@ -25,7 +25,7 @@ const isAuthenticatedUser = (req, res, next) => __awaiter(void 0, void 0, void 0
             return res.status(400).json({ msg: "Invalid Authentication." });
         const token = getToken.split(" ")[1];
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_ACCESS_SECRET);
-        console.log("desss", decoded);
+        // console.log("desss", decoded);
         if (!decoded)
             return res.status(400).json({ msg: "Invalid Authentication." });
         const user = yield user_model_1.default.findOne({ _id: (_a = decoded === null || decoded === void 0 ? void 0 : decoded.user) === null || _a === void 0 ? void 0 : _a.userId }).select("-password");

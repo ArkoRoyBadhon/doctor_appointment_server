@@ -75,20 +75,20 @@ exports.getAuthState = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(v
 }));
 exports.updateUserController = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    const { name, age, gender, phone, email, address } = req.body;
+    const { name, age, gender, phone, email, location } = req.body;
     if (!user) {
         return res.status(401).json({ success: false, message: "Unauthorized" });
     }
     try {
         let userData;
         if (user.role === "doctor") {
-            userData = yield doctor_model_1.default.findOneAndUpdate({ userId: user._id }, { name, phone, email, address }, { new: true, runValidators: true });
+            userData = yield doctor_model_1.default.findOneAndUpdate({ userId: user._id }, { name, phone, email, location }, { new: true, runValidators: true });
         }
         else if (user.role === "patient") {
-            userData = yield patient_model_1.default.findOneAndUpdate({ userId: user._id }, { name, age, gender, phone, email, address }, { new: true, runValidators: true });
+            userData = yield patient_model_1.default.findOneAndUpdate({ userId: user._id }, { name, age, gender, phone, email, location }, { new: true, runValidators: true });
         }
         else {
-            userData = yield user_model_1.default.findByIdAndUpdate(user._id, { name, email, phone, address }, { new: true, runValidators: true });
+            userData = yield user_model_1.default.findByIdAndUpdate(user._id, { name, email, phone }, { new: true, runValidators: true });
         }
         if (userData) {
             res.json({

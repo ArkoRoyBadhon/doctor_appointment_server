@@ -7,9 +7,8 @@ import catchAsyncError from "../middlewares/catchAsyncErrors";
 import Appointment from "../models/appointment.model";
 import Doctor from "../models/doctor.model";
 import patientModel from "../models/patient.model";
-import checkSlotAvailability from "../helpers/slotAvailability";
-import getNextDate from "../helpers/getNextDate";
-
+import appointmentModel from "../models/appointment.model";
+import User from "../models/user.model";
 
 export const createAppointmentController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -164,7 +163,7 @@ export const updateAppointmentController = catchAsyncError(
 
     const { id } = req.params;
     const { doctor, patient, date, startTime, endTime, status } = req.body;
-    
+
     try {
       const appointment = await Appointment.findById(id);
 
@@ -173,20 +172,20 @@ export const updateAppointmentController = catchAsyncError(
       }
 
       const info = {
-        doctor : doctor || appointment.doctor,
-      patient : patient || appointment.patient,
-      date : date || appointment.date,
-      startTime : startTime || appointment.startTime,
-      endTime : endTime || appointment.endTime,
-      status : status || appointment.status
-      }
-
-      
+        doctor: doctor || appointment.doctor,
+        patient: patient || appointment.patient,
+        date: date || appointment.date,
+        startTime: startTime || appointment.startTime,
+        endTime: endTime || appointment.endTime,
+        status: status || appointment.status,
+      };
 
       console.log("prev", appointment);
-      
+
       // await appointment.save();
-      const result = await appointmentModel.findByIdAndUpdate(id, info, {new:true})
+      const result = await appointmentModel.findByIdAndUpdate(id, info, {
+        new: true,
+      });
 
       return res.status(200).json({
         success: true,
@@ -267,17 +266,16 @@ export const getAllAppointmentsByDoctorController = catchAsyncError(
 //     try {
 //       const user = req.user;
 //       console.log("userid mango", user);
-      
+
 //       // const user.userId = "667fa261c8fd7dfbd8e6b961";
 //       if (!user) return;
 
 //       const existUser = await User.findById(user?._id)
-      
-      
+
 //       if(!existUser) {
 //         return res.status(404).json({ message: "User not found" });
 //       }
-      
+
 //       const existPatient = await patientModel.find({email: existUser.email})
 
 //       if(!existPatient) {
@@ -285,7 +283,6 @@ export const getAllAppointmentsByDoctorController = catchAsyncError(
 //       }
 
 //       console.log("aaaa", existPatient[0]);
-
 
 //       const query = Appointment.find({ patient: existPatient[0]._id })
 //         .populate("doctor", "name specialization")
@@ -307,13 +304,11 @@ export const getAllAppointmentsByDoctorController = catchAsyncError(
 //   }
 // );
 
-
 export const getAllAppointmentsByUserController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user;
       // console.log("user iddd", user);
-      
 
       if (!user) {
         return res.status(401).json({ message: "Unauthorized access" });
