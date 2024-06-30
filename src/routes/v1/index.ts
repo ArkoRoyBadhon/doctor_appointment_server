@@ -9,6 +9,7 @@ import file from "../v1/fileupload.route";
 import patient from "../v1/patient.route";
 import review from "../v1/reviews.route";
 import specializationRoute from "./specialization.route";
+import paymentRoute from "./payment.route";
 
 router.use("/auth", auth);
 router.use("/doctor", doctor);
@@ -18,5 +19,6 @@ router.use("/billing", billing);
 router.use("/review", review);
 router.use("file", file);
 router.use("/specialization", specializationRoute);
+router.use("/payment", paymentRoute);
 
 export default router;

@@ -25,7 +25,9 @@ exports.createBillingController = (0, catchAsyncErrors_1.default)((req, res, nex
             errors: firstError,
         });
     }
-    const { appointment, patient, doctor, amount, status, date } = req.body;
+    const { appointment, patient, doctor, amount, status } = req.body;
+    // appointment, patient, doctor, amount, status, date 
+    console.log(appointment);
     try {
         const existingAppointment = yield appointment_model_1.default.findById(appointment);
         if (!existingAppointment) {
@@ -51,7 +53,6 @@ exports.createBillingController = (0, catchAsyncErrors_1.default)((req, res, nex
             doctor,
             amount,
             status,
-            date,
         });
         if (newBilling) {
             yield appointment_model_1.default.findByIdAndUpdate(appointment, { status: "completed" }, { new: true });
