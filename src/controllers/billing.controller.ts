@@ -3,6 +3,8 @@ import catchAsyncError from "../middlewares/catchAsyncErrors";
 import { validationResult } from "express-validator";
 import Billing from "../models/billing.model";
 import Appointment from "../models/appointment.model";
+import User from "../models/user.model";
+import patientModel from "../models/patient.model";
 
 export const createBillingController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -96,8 +98,25 @@ export const getAllBillingByUserController = catchAsyncError(
     if(!user) {
       return res.status(500).json("user not found")
     }
+
     try {
-      const billingRecords = await Billing.findById(user.userId)
+
+      const existUser = await User.findById(user?._id)
+
+      if(!existUser) {
+        return res.status(500).json("user not found")
+      }
+
+      const existPatient = await patientModel.find({userId: user?._id})
+
+      if(!existPatient) {
+        return res.status(500).json("Patient not found")
+      }
+
+      console.log("paaaa", existPatient);
+      
+
+      const billingRecords = await Billing.find({patient: existPatient[0]?._id})
         .populate("patient", "name email")
         .populate("doctor", "name specialization");
 
