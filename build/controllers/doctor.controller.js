@@ -19,6 +19,7 @@ const doctor_model_1 = __importDefault(require("../models/doctor.model"));
 const appointment_model_1 = __importDefault(require("../models/appointment.model"));
 const user_model_1 = __importDefault(require("../models/user.model"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const mongoose_1 = __importDefault(require("mongoose"));
 exports.createDoctorController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
     const user = req.user;
@@ -82,7 +83,15 @@ exports.getAllDoctorsController = (0, catchAsyncErrors_1.default)((req, res, nex
         }
         // Specialization filter
         if (specialization) {
-            query.specialization = { $regex: specialization, $options: "i" };
+            if (mongoose_1.default.Types.ObjectId.isValid(specialization)) {
+                query.specialization = new mongoose_1.default.Types.ObjectId(specialization);
+            }
+            else {
+                return res.status(400).json({
+                    success: false,
+                    msg: "Invalid specialization ID format.",
+                });
+            }
         }
         // Gender filter
         if (gender) {

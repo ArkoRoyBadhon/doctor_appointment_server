@@ -3,9 +3,9 @@ import catchAsyncError from "../middlewares/catchAsyncErrors";
 import { validationResult } from "express-validator";
 import Doctor from "../models/doctor.model";
 import Appointment from "../models/appointment.model";
-import ErrorHandler from "../utils/errorhandler";
 import User from "../models/user.model";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
 export const createDoctorController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -25,8 +25,8 @@ export const createDoctorController = catchAsyncError(
       });
     }
 
-       
-    const { name, specialization, phone, password,  email, availability } = req.body;
+    const { name, specialization, phone, password, email, availability } =
+      req.body;
 
     try {
       const existingDoctor = await Doctor.findOne({ email });
@@ -96,7 +96,16 @@ export const getAllDoctorsController = catchAsyncError(
 
       // Specialization filter
       if (specialization) {
-        query.specialization = { $regex: specialization, $options: "i" };
+        if (mongoose.Types.ObjectId.isValid(specialization as string)) {
+          query.specialization = new mongoose.Types.ObjectId(
+            specialization as string
+          );
+        } else {
+          return res.status(400).json({
+            success: false,
+            msg: "Invalid specialization ID format.",
+          });
+        }
       }
 
       // Gender filter
