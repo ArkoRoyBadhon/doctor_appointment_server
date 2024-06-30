@@ -10,8 +10,8 @@ export const isAuthenticatedUser = async (
 ) => {
   try {
     const getToken = req.header("Authorization");
-// console.log(getToken);
-
+    // console.log(getToken);
+    console.log(getToken);
     if (!getToken)
       return res.status(400).json({ msg: "Invalid Authentication." });
 
@@ -21,7 +21,6 @@ export const isAuthenticatedUser = async (
       process.env.JWT_ACCESS_SECRET as string
     );
     // console.log("desss", decoded);
-    
 
     if (!decoded)
       return res.status(400).json({ msg: "Invalid Authentication." });
@@ -31,7 +30,6 @@ export const isAuthenticatedUser = async (
     );
     if (!user) return res.status(400).json({ msg: "User does not exist." });
 
-    
     // console.log("user =======", user);
 
     req.user = user;
