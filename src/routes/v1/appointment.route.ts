@@ -24,12 +24,12 @@ router.get(
   getAllAppointmentsController
 );
 router.get(
-  "/:id",
+  "/get/:id",
   isAuthenticatedUser,
   authorizeRoles("admin", "patient", "doctor"),
   getAppointmentByIdController
 );
-router.put(
+router.patch(
   "/update/:id",
   isAuthenticatedUser,
   authorizeRoles("admin", "patient"),
@@ -48,7 +48,7 @@ router.get(
   getAllAppointmentsByDoctorController
 );
 router.get(
-  "/patient/appointments",
+  "/a/patient/get",
   isAuthenticatedUser,
   authorizeRoles("patient"),
   getAllAppointmentsByUserController

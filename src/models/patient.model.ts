@@ -7,6 +7,7 @@ export interface IPatient extends Document {
   gender: string;
   phone: string;
   email: string;
+  location: string;
   reviews?: IReview['_id'][];
   userId: any
 }
@@ -17,6 +18,7 @@ const patientSchema = new Schema<IPatient>({
   gender: { type: String, required: true },
   phone: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+  location: { type: String },
   userId: {
     type: mongoose.Types.ObjectId,
     

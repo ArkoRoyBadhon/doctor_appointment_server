@@ -8,6 +8,7 @@ import User from "../models/user.model";
 import patientModel from "../models/patient.model";
 import checkSlotAvailability from "../helpers/slotAvailability";
 import getNextDate from "../helpers/getNextDate";
+import appointmentModel from "../models/appointment.model";
 
 
 export const createAppointmentController = catchAsyncError(
@@ -151,27 +152,34 @@ export const updateAppointmentController = catchAsyncError(
 
     const { id } = req.params;
     const { doctor, patient, date, startTime, endTime, status } = req.body;
-
+    
     try {
       const appointment = await Appointment.findById(id);
 
       if (!appointment) {
-        return res.status(404).json({ message: "Appointment not found" });
+        return res.status(400).json({ message: "Appointment not found" });
       }
 
-      appointment.doctor = doctor || appointment.doctor;
-      appointment.patient = patient || appointment.patient;
-      appointment.date = date || appointment.date;
-      appointment.startTime = startTime || appointment.startTime;
-      appointment.endTime = endTime || appointment.endTime;
-      appointment.status = status || appointment.status;
+      const info = {
+        doctor : doctor || appointment.doctor,
+      patient : patient || appointment.patient,
+      date : date || appointment.date,
+      startTime : startTime || appointment.startTime,
+      endTime : endTime || appointment.endTime,
+      status : status || appointment.status
+      }
 
-      await appointment.save();
+      
+
+      console.log("prev", appointment);
+      
+      // await appointment.save();
+      const result = await appointmentModel.findByIdAndUpdate(id, info, {new:true})
 
       return res.status(200).json({
         success: true,
         msg: "Appointment updated successfully.",
-        appointment,
+        result,
       });
     } catch (error) {
       return res.status(500).json({
@@ -238,56 +246,15 @@ export const getAllAppointmentsByDoctorController = catchAsyncError(
   }
 );
 
-// export const getallAppointmentByUser = catchAsyncError(
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//       const user = req.user;
-//       console.log("userid mango", user);
-      
-//       // const user.userId = "667fa261c8fd7dfbd8e6b961";
-//       if (!user) return;
 
-//       const existUser = await User.findById(user?._id)
-      
-      
-//       if(!existUser) {
-//         return res.status(404).json({ message: "User not found" });
-//       }
-      
-//       const existPatient = await patientModel.find({email: existUser.email})
-
-//       if(!existPatient) {
-//         return res.status(404).json({ message: "Patient not found" });
-//       }
-
-//       console.log("aaaa", existPatient[0]);
-
-
-//       const query = Appointment.find({ patient: existPatient[0]._id })
-//         .populate("doctor", "name specialization")
-//         .populate("patient", "name email");
-//       const appointmentsquery = new QueryBuilder(query, req.query)
-//         .filter()
-//         .paginate();
-//       const appointments = await appointmentsquery.modelQuery;
-//       return res.status(200).json({
-//         success: true,
-//         msg: "Appointments have been retrieved successfully.",
-//         appointments,
-//       });
-//     } catch (error) {
-//       return res
-//         .status(500)
-//         .json({ success: false, msg: "Error retrieving appointments.", error });
-//     }
-//   }
-// );
 
 
 export const getAllAppointmentsByUserController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user;
+      // console.log("user iddd", user);
+      
 
       if (!user) {
         return res.status(401).json({ message: "Unauthorized access" });
@@ -295,12 +262,12 @@ export const getAllAppointmentsByUserController = catchAsyncError(
 
       const existUser = await User.findById(user._id);
       if (!existUser) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(400).json({ message: "User not found" });
       }
 
       const existPatient = await patientModel.findOne({ email: existUser.email });
       if (!existPatient) {
-        return res.status(404).json({ message: "Patient not found" });
+        return res.status(400).json({ message: "Patient not found" });
       }
 
       const query = Appointment.find({ patient: existPatient._id })

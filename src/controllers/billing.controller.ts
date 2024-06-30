@@ -89,6 +89,32 @@ export const getAllBillingController = catchAsyncError(
   }
 );
 
+export const getAllBillingByUserController = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user
+    if(!user) {
+      return res.status(500).json("user not found")
+    }
+    try {
+      const billingRecords = await Billing.findById(user.userId)
+        .populate("patient", "name email")
+        .populate("doctor", "name specialization");
+
+      return res.status(200).json({
+        success: true,
+        msg: "Billing records have been retrieved successfully.",
+        billingRecords,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        msg: "Error retrieving billing records.",
+        error,
+      });
+    }
+  }
+);
+
 export const getBillingByIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;

@@ -53,7 +53,7 @@ export const getAuthState = catchAsyncError(async (req, res) => {
 
 export const updateUserController = catchAsyncError(async (req, res) => {
   const user = req.user;
-  const { name, age, gender, phone, email, address } = req.body;
+  const { name, age, gender, phone, email, location } = req.body;
 
   if (!user) {
     return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -64,19 +64,19 @@ export const updateUserController = catchAsyncError(async (req, res) => {
     if (user.role === "doctor") {
       userData = await Doctor.findOneAndUpdate(
         { userId: user._id },
-        { name, phone, email, address },
+        { name, phone, email, location },
         { new: true, runValidators: true }
       );
     } else if (user.role === "patient") {
       userData = await Patient.findOneAndUpdate(
         { userId: user._id },
-        { name, age, gender, phone, email, address },
+        { name, age, gender, phone, email, location },
         { new: true, runValidators: true }
       );
     } else {
       userData = await User.findByIdAndUpdate(
         user._id,
-        { name, email, phone, address },
+        { name, email, phone },
         { new: true, runValidators: true }
       );
     }

@@ -20,7 +20,7 @@ export const isAuthenticatedUser = async (
       token,
       process.env.JWT_ACCESS_SECRET as string
     );
-    console.log("desss", decoded);
+    // console.log("desss", decoded);
     
 
     if (!decoded)
