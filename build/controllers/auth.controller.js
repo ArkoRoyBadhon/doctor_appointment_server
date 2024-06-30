@@ -48,14 +48,16 @@ exports.getAuthState = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(v
         if (user.role === "patient") {
             userData = yield patient_model_1.default.findOne({ userId: user._id });
         }
-        else {
+        else if (user.role !== "doctor" && user.role !== "doctor") {
             userData = yield user_model_1.default.findById(user._id);
         }
         if (userData) {
+            // console.log("ddd 2", userData);
             return res.json({
                 success: true,
                 message: "User info get successfull",
                 data: userData,
+                role: user.role,
             });
         }
         else {
@@ -75,17 +77,18 @@ exports.getAuthState = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(v
 }));
 exports.updateUserController = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    const { name, age, gender, phone, email, location } = req.body;
+    const { name, age, gender, phone, picture, email, location, about, fee } = req.body;
     if (!user) {
         return res.status(401).json({ success: false, message: "Unauthorized" });
     }
     try {
         let userData;
         if (user.role === "doctor") {
-            userData = yield doctor_model_1.default.findOneAndUpdate({ userId: user._id }, { name, phone, email, location }, { new: true, runValidators: true });
+            // console.log("incoming", req.body);
+            userData = yield doctor_model_1.default.findOneAndUpdate({ userId: user._id }, { name, phone, email, location, picture, about, fee }, { new: true, runValidators: true });
         }
         else if (user.role === "patient") {
-            userData = yield patient_model_1.default.findOneAndUpdate({ userId: user._id }, { name, age, gender, phone, email, location }, { new: true, runValidators: true });
+            userData = yield patient_model_1.default.findOneAndUpdate({ userId: user._id }, { name, age, gender, phone, email, location, picture }, { new: true, runValidators: true });
         }
         else {
             userData = yield user_model_1.default.findByIdAndUpdate(user._id, { name, email, phone }, { new: true, runValidators: true });

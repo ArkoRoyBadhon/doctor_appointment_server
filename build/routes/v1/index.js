@@ -20,7 +20,7 @@ router.use("/patient", patient_route_1.default);
 router.use("/appointment", appointment_route_1.default);
 router.use("/billing", billing_route_1.default);
 router.use("/review", reviews_route_1.default);
-router.use("file", fileupload_route_1.default);
+router.use("/file", fileupload_route_1.default);
 router.use("/specialization", specialization_route_1.default);
 router.use("/payment", payment_route_1.default);
 exports.default = router;

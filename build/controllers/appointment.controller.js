@@ -18,11 +18,11 @@ const QueryBuilder_1 = __importDefault(require("../builder/QueryBuilder"));
 const getNextDate_1 = __importDefault(require("../helpers/getNextDate"));
 const slotAvailability_1 = __importDefault(require("../helpers/slotAvailability"));
 const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErrors"));
-const appointment_model_1 = __importDefault(require("../models/appointment.model"));
 const doctor_model_1 = __importDefault(require("../models/doctor.model"));
 const patient_model_1 = __importDefault(require("../models/patient.model"));
-const appointment_model_2 = __importDefault(require("../models/appointment.model"));
+const appointment_model_1 = __importDefault(require("../models/appointment.model"));
 const user_model_1 = __importDefault(require("../models/user.model"));
+const doctor_model_2 = __importDefault(require("../models/doctor.model"));
 exports.createAppointmentController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -148,7 +148,7 @@ exports.updateAppointmentController = (0, catchAsyncErrors_1.default)((req, res,
         };
         console.log("prev", appointment);
         // await appointment.save();
-        const result = yield appointment_model_2.default.findByIdAndUpdate(id, info, {
+        const result = yield appointment_model_1.default.findByIdAndUpdate(id, info, {
             new: true,
         });
         return res.status(200).json({
@@ -189,11 +189,19 @@ exports.getAllAppointmentsByDoctorController = (0, catchAsyncErrors_1.default)((
     try {
         const user = req.user;
         if (!user) {
-            return res
-                .status(401)
-                .json({ success: false, msg: "Unauthorized access." });
+            return res.status(401).json({ message: "Unauthorized access" });
         }
-        const query = appointment_model_1.default.find({ doctor: user._id })
+        const existUser = yield user_model_1.default.findById(user._id);
+        if (!existUser) {
+            return res.status(400).json({ message: "User not found" });
+        }
+        const existDoctor = yield doctor_model_2.default.findOne({
+            email: existUser.email,
+        });
+        if (!existDoctor) {
+            return res.status(400).json({ message: "Doctor not found" });
+        }
+        const query = appointment_model_1.default.find({ doctor: existDoctor._id })
             .populate("doctor", "name specialization")
             .populate("patient", "name email");
         const appointmentsQuery = new QueryBuilder_1.default(query, req.query)
@@ -210,45 +218,10 @@ exports.getAllAppointmentsByDoctorController = (0, catchAsyncErrors_1.default)((
         return res.status(500).json({
             success: false,
             msg: "Error retrieving appointments.",
-            error,
+            error: error,
         });
     }
 }));
-// export const getallAppointmentByUser = catchAsyncError(
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//       const user = req.user;
-//       console.log("userid mango", user);
-//       // const user.userId = "667fa261c8fd7dfbd8e6b961";
-//       if (!user) return;
-//       const existUser = await User.findById(user?._id)
-//       if(!existUser) {
-//         return res.status(404).json({ message: "User not found" });
-//       }
-//       const existPatient = await patientModel.find({email: existUser.email})
-//       if(!existPatient) {
-//         return res.status(404).json({ message: "Patient not found" });
-//       }
-//       console.log("aaaa", existPatient[0]);
-//       const query = Appointment.find({ patient: existPatient[0]._id })
-//         .populate("doctor", "name specialization")
-//         .populate("patient", "name email");
-//       const appointmentsquery = new QueryBuilder(query, req.query)
-//         .filter()
-//         .paginate();
-//       const appointments = await appointmentsquery.modelQuery;
-//       return res.status(200).json({
-//         success: true,
-//         msg: "Appointments have been retrieved successfully.",
-//         appointments,
-//       });
-//     } catch (error) {
-//       return res
-//         .status(500)
-//         .json({ success: false, msg: "Error retrieving appointments.", error });
-//     }
-//   }
-// );
 exports.getAllAppointmentsByUserController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = req.user;
