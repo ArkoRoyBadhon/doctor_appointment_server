@@ -15,8 +15,10 @@ export const createBillingController = catchAsyncError(
       });
     }
 
-    const { appointment, patient, doctor, amount, status, date } = req.body;
-
+    const { appointment, patient, doctor, amount, status } = req.body;
+    // appointment, patient, doctor, amount, status, date 
+    console.log(appointment);
+    
     try {
       const existingAppointment = await Appointment.findById(appointment);
 
@@ -49,7 +51,6 @@ export const createBillingController = catchAsyncError(
         doctor,
         amount,
         status,
-        date,
       });
 
       if (newBilling) {
