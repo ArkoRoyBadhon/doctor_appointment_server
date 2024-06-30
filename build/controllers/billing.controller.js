@@ -17,6 +17,8 @@ const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErr
 const express_validator_1 = require("express-validator");
 const billing_model_1 = __importDefault(require("../models/billing.model"));
 const appointment_model_1 = __importDefault(require("../models/appointment.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
+const patient_model_1 = __importDefault(require("../models/patient.model"));
 exports.createBillingController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -83,12 +85,22 @@ exports.getAllBillingController = (0, catchAsyncErrors_1.default)((req, res, nex
     }
 }));
 exports.getAllBillingByUserController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const user = req.user;
     if (!user) {
         return res.status(500).json("user not found");
     }
     try {
-        const billingRecords = yield billing_model_1.default.findById(user.userId)
+        const existUser = yield user_model_1.default.findById(user === null || user === void 0 ? void 0 : user._id);
+        if (!existUser) {
+            return res.status(500).json("user not found");
+        }
+        const existPatient = yield patient_model_1.default.find({ userId: user === null || user === void 0 ? void 0 : user._id });
+        if (!existPatient) {
+            return res.status(500).json("Patient not found");
+        }
+        console.log("paaaa", existPatient);
+        const billingRecords = yield billing_model_1.default.find({ patient: (_a = existPatient[0]) === null || _a === void 0 ? void 0 : _a._id })
             .populate("patient", "name email")
             .populate("doctor", "name specialization");
         return res.status(200).json({
