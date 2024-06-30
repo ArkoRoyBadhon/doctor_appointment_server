@@ -75,7 +75,7 @@ exports.createDoctorController = (0, catchAsyncErrors_1.default)((req, res, next
 }));
 exports.getAllDoctorsController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, specialization, gender, minFee, maxFee, page = 1, limit = 10, } = req.query;
+        const { name, specialization, gender, minFee, maxFee, page = 1, limit = 6, } = req.query;
         const query = {};
         // Name filter
         if (name) {

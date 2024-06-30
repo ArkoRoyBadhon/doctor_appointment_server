@@ -85,8 +85,9 @@ export const getAllDoctorsController = catchAsyncError(
         minFee,
         maxFee,
         page = 1,
-        limit = 10,
+        limit = 6,
       } = req.query;
+
       const query: any = {};
 
       // Name filter
