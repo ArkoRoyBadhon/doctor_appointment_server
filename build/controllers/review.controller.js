@@ -26,21 +26,29 @@ exports.createReviewController = (0, catchAsyncErrors_1.default)((req, res, next
             errors: firstError,
         });
     }
-    const { patient, doctor, rating, comment, appointment } = req.body;
+    const { rating, comment, appointment } = req.body;
+    const user = req.user;
     try {
         const existingAppointment = yield appointment_model_1.default.findById(appointment);
         if (!existingAppointment) {
-            return res.status(404).json({ message: "Appointment not found" });
+            return res.status(400).json({ message: "Appointment not found" });
         }
-        if (existingAppointment.patient.toString() !== patient) {
+        if (existingAppointment.patient === (user === null || user === void 0 ? void 0 : user._id)) {
             return res.status(400).json({
                 message: "The appointment does not belong to the patient",
             });
         }
+        const test = {
+            patient: user === null || user === void 0 ? void 0 : user._id,
+            doctor: existingAppointment === null || existingAppointment === void 0 ? void 0 : existingAppointment.doctor,
+            rating,
+            comment,
+            appointment,
+        };
         // Create the review
         const newReview = yield review_model_1.default.create({
-            patient,
-            doctor,
+            patient: user === null || user === void 0 ? void 0 : user._id,
+            doctor: existingAppointment === null || existingAppointment === void 0 ? void 0 : existingAppointment.doctor,
             rating,
             comment,
             appointment,

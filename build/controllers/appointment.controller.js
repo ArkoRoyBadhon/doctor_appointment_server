@@ -58,9 +58,6 @@ exports.createAppointmentController = (0, catchAsyncErrors_1.default)((req, res,
             doctor,
             date: nextDate,
         });
-        console.log("count ", appointmentsCount);
-        console.log("count day", dayAvailability);
-        console.log("pick date", nextDate);
         if (appointmentsCount >= dayAvailability.maxPatient) {
             return res
                 .status(400)
@@ -68,7 +65,7 @@ exports.createAppointmentController = (0, catchAsyncErrors_1.default)((req, res,
         }
         const newAppointment = yield appointment_model_1.default.create({
             doctor,
-            patient,
+            patient: existPatient === null || existPatient === void 0 ? void 0 : existPatient.userId,
             description,
             date: nextDate,
             startTime,
@@ -83,7 +80,8 @@ exports.createAppointmentController = (0, catchAsyncErrors_1.default)((req, res,
 }));
 exports.getAllAppointmentsController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const appointments = yield appointment_model_1.default.find()
+        const appointments = yield appointment_model_1.default
+            .find()
             .populate("doctor", "name specialization")
             .populate("patient", "name email");
         return res.status(200).json({
@@ -103,7 +101,8 @@ exports.getAllAppointmentsController = (0, catchAsyncErrors_1.default)((req, res
 exports.getAppointmentByIdController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     try {
-        const appointment = yield appointment_model_1.default.findById(id)
+        const appointment = yield appointment_model_1.default
+            .findById(id)
             .populate("doctor", "name specialization")
             .populate("patient", "name email");
         if (!appointment) {
@@ -201,9 +200,10 @@ exports.getAllAppointmentsByDoctorController = (0, catchAsyncErrors_1.default)((
         if (!existDoctor) {
             return res.status(400).json({ message: "Doctor not found" });
         }
-        const query = appointment_model_1.default.find({ doctor: existDoctor._id })
+        const query = appointment_model_1.default
+            .find({ doctor: existDoctor._id })
             .populate("doctor", "name specialization")
-            .populate("patient", "name email");
+            .populate({ path: "patient", model: "User" });
         const appointmentsQuery = new QueryBuilder_1.default(query, req.query)
             .filter()
             .paginate();
@@ -225,7 +225,6 @@ exports.getAllAppointmentsByDoctorController = (0, catchAsyncErrors_1.default)((
 exports.getAllAppointmentsByUserController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = req.user;
-        // console.log("user iddd", user);
         if (!user) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
@@ -239,11 +238,13 @@ exports.getAllAppointmentsByUserController = (0, catchAsyncErrors_1.default)((re
         if (!existPatient) {
             return res.status(400).json({ message: "Patient not found" });
         }
-        const query = appointment_model_1.default.find({ patient: existPatient._id })
+        const query = appointment_model_1.default
+            .find({ patient: user._id })
             .populate("doctor", "name specialization")
-            .populate("patient", "name email");
+            .populate({ path: "patient", model: "User" });
         const appointmentsQuery = new QueryBuilder_1.default(query, req.query)
             .filter()
+            .sort()
             .paginate();
         const appointments = yield appointmentsQuery.modelQuery;
         return res.status(200).json({

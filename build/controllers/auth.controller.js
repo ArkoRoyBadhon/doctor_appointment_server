@@ -174,9 +174,8 @@ exports.registerCustomerController = (0, catchAsyncErrors_1.default)((req, res, 
     });
 }));
 exports.registerDoctorController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, specialization, phone, email, password, availability } = req.body;
+    const { name, specialization, location, phone, email, gender, password, availability, fee, about } = req.body;
     const errors = (0, express_validator_1.validationResult)(req);
-    console.log("sss", req.body);
     if (!errors.isEmpty()) {
         throw new errorhandler_1.default(errors.array()[0].msg, 422);
     }
@@ -214,6 +213,10 @@ exports.registerDoctorController = (0, catchAsyncErrors_1.default)((req, res, ne
         email,
         specialization,
         availability,
+        fee,
+        location,
+        about,
+        gender,
         userId: userResponse._id,
     });
     const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;

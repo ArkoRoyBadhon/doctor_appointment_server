@@ -19,6 +19,7 @@ const billing_model_1 = __importDefault(require("../models/billing.model"));
 const appointment_model_1 = __importDefault(require("../models/appointment.model"));
 const user_model_1 = __importDefault(require("../models/user.model"));
 const patient_model_1 = __importDefault(require("../models/patient.model"));
+const QueryBuilder_1 = __importDefault(require("../builder/QueryBuilder"));
 exports.createBillingController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -28,8 +29,6 @@ exports.createBillingController = (0, catchAsyncErrors_1.default)((req, res, nex
         });
     }
     const { appointment, patient, doctor, amount, status } = req.body;
-    // appointment, patient, doctor, amount, status, date 
-    console.log(appointment);
     try {
         const existingAppointment = yield appointment_model_1.default.findById(appointment);
         if (!existingAppointment) {
@@ -57,7 +56,7 @@ exports.createBillingController = (0, catchAsyncErrors_1.default)((req, res, nex
             status,
         });
         if (newBilling) {
-            yield appointment_model_1.default.findByIdAndUpdate(appointment, { status: "completed" }, { new: true });
+            yield appointment_model_1.default.findByIdAndUpdate(appointment, { status: "scheduled" }, { new: true });
         }
         res.status(201).json(newBilling);
     }
@@ -85,24 +84,30 @@ exports.getAllBillingController = (0, catchAsyncErrors_1.default)((req, res, nex
     }
 }));
 exports.getAllBillingByUserController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     const user = req.user;
     if (!user) {
-        return res.status(500).json("user not found");
+        return res.status(500).json("User not found");
     }
     try {
-        const existUser = yield user_model_1.default.findById(user === null || user === void 0 ? void 0 : user._id);
+        const existUser = yield user_model_1.default.findById(user._id);
         if (!existUser) {
-            return res.status(500).json("user not found");
+            return res.status(500).json("User not found");
         }
-        const existPatient = yield patient_model_1.default.find({ userId: user === null || user === void 0 ? void 0 : user._id });
-        if (!existPatient) {
+        const existPatient = yield patient_model_1.default.find({ userId: user._id });
+        if (!existPatient || existPatient.length === 0) {
             return res.status(500).json("Patient not found");
         }
-        console.log("paaaa", existPatient);
-        const billingRecords = yield billing_model_1.default.find({ patient: (_a = existPatient[0]) === null || _a === void 0 ? void 0 : _a._id })
+        const billingQuery = billing_model_1.default.find({ patient: existPatient[0]._id })
             .populate("patient", "name email")
             .populate("doctor", "name specialization");
+        const queryBuilder = new QueryBuilder_1.default(billingQuery, req.query)
+            .search(['patient.name', 'doctor.name'])
+            .filter()
+            .sort()
+            .paginate()
+            .fields();
+        const billingRecords = yield queryBuilder.modelQuery;
+        // console.log("records", billingRecords);
         return res.status(200).json({
             success: true,
             msg: "Billing records have been retrieved successfully.",

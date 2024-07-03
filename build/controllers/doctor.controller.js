@@ -125,55 +125,24 @@ exports.getAllDoctorsController = (0, catchAsyncErrors_1.default)((req, res, nex
             .json({ success: false, msg: "Error retrieving doctors.", error });
     }
 }));
-// export const getAllDoctorsController = catchAsyncError(
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//       const { name, specialization } = req.query;
-//       const query: any = {};
-//       if (name) {
-//         query.name = { $regex: name, $options: "i" };
-//       }
-//       if (specialization) {
-//         query.specialization = { $regex: specialization, $options: "i" };
-//       }
-//       const doctors = await Doctor.find(query);
-//       return res.status(200).json({
-//         success: true,
-//         msg: "Doctors have been retrieved successfully.",
-//         doctors,
-//       });
-//     } catch (error) {
-//       return res
-//         .status(500)
-//         .json({ success: false, msg: "Error retrieving doctors.", error });
-//     }
-//   }
-// );
-// export const getAllDoctorsController = catchAsyncError(
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//       const doctors = await Doctor.find();
-//       return res.status(200).json({
-//         success: true,
-//         msg: "Doctors have been retrieved successfully.",
-//         doctors,
-//       });
-//     } catch (error) {
-//       return res
-//         .status(500)
-//         .json({ success: false, msg: "Error retrieving doctors.", error });
-//     }
-//   }
-// );
 exports.getDoctorByIdController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     try {
-        const doctor = yield doctor_model_1.default.findById(id).populate("reviews");
+        // const doctor = await Doctor.findById(id).populate("reviews");
+        const doctor = yield doctor_model_1.default.findById(id)
+            .populate({
+            path: 'reviews',
+            populate: {
+                path: 'patient',
+                model: 'User',
+            },
+        });
         if (!doctor) {
             return res
                 .status(404)
                 .json({ success: false, message: "Doctor not found" });
         }
+        console.log("revv,", doctor);
         return res.status(200).json({
             success: true,
             msg: "Doctor retrieved successfully.",
