@@ -145,7 +145,7 @@ exports.updateAppointmentController = (0, catchAsyncErrors_1.default)((req, res,
             endTime: endTime || appointment.endTime,
             status: status || appointment.status,
         };
-        console.log("prev", appointment);
+        // console.log("prev", appointment);
         // await appointment.save();
         const result = yield appointment_model_1.default.findByIdAndUpdate(id, info, {
             new: true,

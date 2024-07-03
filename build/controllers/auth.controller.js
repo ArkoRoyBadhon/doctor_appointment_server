@@ -34,8 +34,6 @@ const refreshToken_model_1 = __importDefault(require("../models/refreshToken.mod
 const user_model_1 = __importDefault(require("../models/user.model"));
 const errorhandler_1 = __importDefault(require("../utils/errorhandler"));
 const jwtToken_1 = require("../utils/jwtToken");
-// import shopModel from "../models/shop.model";
-// Register Account
 exports.getAuthState = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
     if (!user)
@@ -43,7 +41,7 @@ exports.getAuthState = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(v
     try {
         let userData;
         if (user.role === "doctor") {
-            userData = yield doctor_model_1.default.findOne({ userId: user._id });
+            userData = yield doctor_model_1.default.findOne({ userId: user._id }).populate("specialization");
         }
         if (user.role === "patient") {
             userData = yield patient_model_1.default.findOne({ userId: user._id });
@@ -51,6 +49,7 @@ exports.getAuthState = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(v
         else if (user.role !== "doctor" && user.role !== "doctor") {
             userData = yield user_model_1.default.findById(user._id);
         }
+        // console.log("aaa", userData);
         if (userData) {
             // console.log("ddd 2", userData);
             return res.json({
@@ -77,7 +76,7 @@ exports.getAuthState = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(v
 }));
 exports.updateUserController = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    const { name, age, gender, phone, picture, email, location, about, fee } = req.body;
+    const { name, age, gender, phone, picture, email, location, about, fee, availability, specialization } = req.body;
     if (!user) {
         return res.status(401).json({ success: false, message: "Unauthorized" });
     }
@@ -85,7 +84,7 @@ exports.updateUserController = (0, catchAsyncErrors_1.default)((req, res) => __a
         let userData;
         if (user.role === "doctor") {
             // console.log("incoming", req.body);
-            userData = yield doctor_model_1.default.findOneAndUpdate({ userId: user._id }, { name, phone, email, location, picture, about, fee }, { new: true, runValidators: true });
+            userData = yield doctor_model_1.default.findOneAndUpdate({ userId: user._id }, { name, phone, email, location, picture, about, fee, availability, specialization }, { new: true, runValidators: true });
         }
         else if (user.role === "patient") {
             userData = yield patient_model_1.default.findOneAndUpdate({ userId: user._id }, { name, age, gender, phone, email, location, picture }, { new: true, runValidators: true });
@@ -119,7 +118,7 @@ exports.updateUserController = (0, catchAsyncErrors_1.default)((req, res) => __a
 exports.registerCustomerController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, name, password, age, gender, phone } = req.body;
     const errors = (0, express_validator_1.validationResult)(req);
-    console.log("sss", req.body);
+    // console.log("sss", req.body);
     if (!errors.isEmpty()) {
         throw new errorhandler_1.default(errors.array()[0].msg, 422);
     }

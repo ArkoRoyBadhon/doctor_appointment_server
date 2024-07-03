@@ -167,7 +167,7 @@ export const getDoctorByIdController = catchAsyncError(
           .json({ success: false, message: "Doctor not found" });
       }
 
-      console.log("revv,", doctor);
+      // console.log("revv,", doctor);
       
 
       return res.status(200).json({

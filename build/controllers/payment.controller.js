@@ -18,7 +18,7 @@ const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErr
 exports.createStripePaymentIntent = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { amount } = req.body;
     const payAmount = Math.round(Number(amount) * 100); // Convert to smallest currency unit (cents)
-    console.log("aaaaaaaaa", amount);
+    // console.log("aaaaaaaaa", amount);
     const stripe = new stripe_1.Stripe(process.env.STRIPE_KEY);
     try {
         const paymentIntent = yield stripe.paymentIntents.create({

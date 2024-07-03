@@ -34,7 +34,7 @@ const availabilitySchema = new Schema<IAvailability>({
 const doctorSchema = new Schema<IDoctor>(
   {
     name: { type: String, required: true },
-    specialization: { type: mongoose.Schema.Types.ObjectId, required: true },
+    specialization: { type: mongoose.Schema.Types.ObjectId, ref: "Specialization", required: true },
     picture: { type: String, required: false },
     phone: { type: String, required: true },
     gender: {

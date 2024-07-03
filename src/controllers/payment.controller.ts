@@ -6,7 +6,7 @@ export const createStripePaymentIntent = catchAsyncError(
     const { amount } = req.body;
     const payAmount = Math.round(Number(amount) * 100); // Convert to smallest currency unit (cents)
 
-    console.log("aaaaaaaaa", amount);
+    // console.log("aaaaaaaaa", amount);
     const stripe = new Stripe(process.env.STRIPE_KEY as string);
     try {
       const paymentIntent = await stripe.paymentIntents.create({

@@ -32,7 +32,7 @@ const availabilitySchema = new mongoose_1.Schema({
 });
 const doctorSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
-    specialization: { type: mongoose_1.default.Schema.Types.ObjectId, required: true },
+    specialization: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Specialization", required: true },
     picture: { type: String, required: false },
     phone: { type: String, required: true },
     gender: {

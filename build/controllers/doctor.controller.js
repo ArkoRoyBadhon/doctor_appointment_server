@@ -142,7 +142,7 @@ exports.getDoctorByIdController = (0, catchAsyncErrors_1.default)((req, res, nex
                 .status(404)
                 .json({ success: false, message: "Doctor not found" });
         }
-        console.log("revv,", doctor);
+        // console.log("revv,", doctor);
         return res.status(200).json({
             success: true,
             msg: "Doctor retrieved successfully.",

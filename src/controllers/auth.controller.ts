@@ -10,9 +10,7 @@ import User from "../models/user.model";
 import ErrorHandler from "../utils/errorhandler";
 import { createAcessToken, createRefreshToken } from "../utils/jwtToken";
 
-// import shopModel from "../models/shop.model";
 
-// Register Account
 
 export const getAuthState = catchAsyncError(async (req, res) => {
   const user = req.user;
@@ -22,13 +20,16 @@ export const getAuthState = catchAsyncError(async (req, res) => {
   try {
     let userData;
     if (user.role === "doctor") {
-      userData = await Doctor.findOne({ userId: user._id });
+      userData = await Doctor.findOne({ userId: user._id }).populate("specialization");
     }
     if (user.role === "patient") {
       userData = await Patient.findOne({ userId: user._id });
     } else if (user.role !== "doctor" && user.role !== "doctor") {
       userData = await User.findById(user._id);
     }
+
+    // console.log("aaa", userData);
+    
 
     if (userData) {
       // console.log("ddd 2", userData);
@@ -56,7 +57,7 @@ export const getAuthState = catchAsyncError(async (req, res) => {
 
 export const updateUserController = catchAsyncError(async (req, res) => {
   const user = req.user;
-  const { name, age, gender, phone, picture, email, location, about, fee } =
+  const { name, age, gender, phone, picture, email, location, about, fee, availability, specialization } =
     req.body;
 
   if (!user) {
@@ -70,7 +71,7 @@ export const updateUserController = catchAsyncError(async (req, res) => {
 
       userData = await Doctor.findOneAndUpdate(
         { userId: user._id },
-        { name, phone, email, location, picture, about, fee },
+        { name, phone, email, location, picture, about, fee, availability, specialization },
         { new: true, runValidators: true }
       );
     } else if (user.role === "patient") {
@@ -113,7 +114,7 @@ export const registerCustomerController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, name, password, age, gender, phone } = req.body;
     const errors = validationResult(req);
-    console.log("sss", req.body);
+    // console.log("sss", req.body);
 
     if (!errors.isEmpty()) {
       throw new ErrorHandler(errors.array()[0].msg, 422);

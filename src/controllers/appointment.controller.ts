@@ -178,7 +178,7 @@ export const updateAppointmentController = catchAsyncError(
         status: status || appointment.status,
       };
 
-      console.log("prev", appointment);
+      // console.log("prev", appointment);
 
       // await appointment.save();
       const result = await appointmentModel.findByIdAndUpdate(id, info, {

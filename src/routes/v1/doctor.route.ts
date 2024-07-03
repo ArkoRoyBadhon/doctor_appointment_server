@@ -12,8 +12,8 @@ const router = express.Router();
 
 router.post(
   "/d/create",
-  isAuthenticatedUser,
-  authorizeRoles("admin"),
+  // isAuthenticatedUser,
+  // authorizeRoles("admin","doctor"),
   createDoctorController
 );
 router.get("/d/get/all", getAllDoctorsController);

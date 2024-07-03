@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const specializationSchema = new mongoose_1.Schema({
-    patient: { type: String, required: true },
+    label: { type: String, required: true },
+    value: { type: String, required: true },
 }, {
     timestamps: true,
 });
