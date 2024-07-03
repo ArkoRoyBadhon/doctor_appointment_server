@@ -181,15 +181,15 @@ export const registerCustomerController = catchAsyncError(
 
 export const registerDoctorController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, specialization, phone, email, password, availability } =
+    const { name, specialization, location, phone, email, gender, password, availability, fee, about } =
       req.body;
     const errors = validationResult(req);
-    console.log("sss", req.body);
 
     if (!errors.isEmpty()) {
       throw new ErrorHandler(errors.array()[0].msg, 422);
     }
     const existingEmail = await User.findOne({ email });
+    
     if (existingEmail) {
       throw new ErrorHandler("This email is already used!", 400);
     }
@@ -202,6 +202,8 @@ export const registerDoctorController = catchAsyncError(
       role: "doctor",
       isAproved: false,
     });
+
+    
 
     // hash password salt id
     const tokenPayload = {
@@ -229,6 +231,10 @@ export const registerDoctorController = catchAsyncError(
       email,
       specialization,
       availability,
+      fee,
+      location,
+      about,
+      gender,
       userId: userResponse._id,
     });
     const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;

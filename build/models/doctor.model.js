@@ -44,7 +44,7 @@ const doctorSchema = new mongoose_1.Schema({
     email: { type: String, required: true, unique: true },
     location: { type: String, required: true },
     fee: { type: Number, required: true },
-    rating: { type: Number, required: true, max: 5, min: 1 },
+    rating: { type: Number, required: false, max: 5, min: 0, default: 0 },
     availability: { type: [availabilitySchema], required: false, default: [] },
     userId: {
         type: mongoose_1.default.Types.ObjectId,

@@ -32,7 +32,7 @@ router.get(
 router.patch(
   "/update/:id",
   isAuthenticatedUser,
-  authorizeRoles("admin", "patient"),
+  authorizeRoles("admin", "patient", "doctor"),
   updateAppointmentController
 );
 router.delete(

@@ -16,25 +16,37 @@ export const createReviewController = catchAsyncError(
       });
     }
 
-    const { patient, doctor, rating, comment, appointment } = req.body;
+    const { rating, comment, appointment } = req.body;
+
+    const user = req.user
+    
 
     try {
       const existingAppointment = await Appointment.findById(appointment);
 
       if (!existingAppointment) {
-        return res.status(404).json({ message: "Appointment not found" });
+        return res.status(400).json({ message: "Appointment not found" });
       }
 
-      if (existingAppointment.patient.toString() !== patient) {
+      if (existingAppointment.patient === user?._id) {
         return res.status(400).json({
           message: "The appointment does not belong to the patient",
         });
       }
 
+      const test = {
+        patient:user?._id,
+        doctor:existingAppointment?.doctor,
+        rating,
+        comment,
+        appointment,
+      }
+
+
       // Create the review
       const newReview = await Review.create({
-        patient,
-        doctor,
+        patient:user?._id,
+        doctor:existingAppointment?.doctor,
         rating,
         comment,
         appointment,

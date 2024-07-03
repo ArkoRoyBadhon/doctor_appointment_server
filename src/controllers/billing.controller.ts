@@ -5,6 +5,7 @@ import Billing from "../models/billing.model";
 import Appointment from "../models/appointment.model";
 import User from "../models/user.model";
 import patientModel from "../models/patient.model";
+import QueryBuilder from "../builder/QueryBuilder";
 
 export const createBillingController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -18,8 +19,6 @@ export const createBillingController = catchAsyncError(
     }
 
     const { appointment, patient, doctor, amount, status } = req.body;
-    // appointment, patient, doctor, amount, status, date 
-    console.log(appointment);
     
     try {
       const existingAppointment = await Appointment.findById(appointment);
@@ -58,7 +57,7 @@ export const createBillingController = catchAsyncError(
       if (newBilling) {
         await Appointment.findByIdAndUpdate(
           appointment,
-          { status: "completed" },
+          { status: "scheduled" },
           { new: true }
         );
       }
@@ -94,31 +93,41 @@ export const getAllBillingController = catchAsyncError(
 
 export const getAllBillingByUserController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user
-    if(!user) {
-      return res.status(500).json("user not found")
+    const user = req.user;
+    if (!user) {
+      return res.status(500).json("User not found");
     }
 
     try {
+      const existUser = await User.findById(user._id);
 
-      const existUser = await User.findById(user?._id)
-
-      if(!existUser) {
-        return res.status(500).json("user not found")
+      if (!existUser) {
+        return res.status(500).json("User not found");
       }
 
-      const existPatient = await patientModel.find({userId: user?._id})
+      const existPatient = await patientModel.find({ userId: user._id });
 
-      if(!existPatient) {
-        return res.status(500).json("Patient not found")
+      if (!existPatient || existPatient.length === 0) {
+        return res.status(500).json("Patient not found");
       }
 
-      console.log("paaaa", existPatient);
-      
-
-      const billingRecords = await Billing.find({patient: existPatient[0]?._id})
+      const billingQuery = Billing.find({ patient: existPatient[0]._id })
         .populate("patient", "name email")
         .populate("doctor", "name specialization");
+
+        
+        
+
+      const queryBuilder = new QueryBuilder(billingQuery, req.query)
+        .search(['patient.name', 'doctor.name'])
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+
+      const billingRecords = await queryBuilder.modelQuery;
+
+      // console.log("records", billingRecords);
 
       return res.status(200).json({
         success: true,
