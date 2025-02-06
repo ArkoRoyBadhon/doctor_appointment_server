@@ -64,6 +64,7 @@ export const createDoctorController = catchAsyncError(
       const userDoc = await User.create({
         email,
         name,
+        isAproved: true,
         password: hashedPassword,
         role: "doctor",
       });
