@@ -64,6 +64,7 @@ exports.createDoctorController = (0, catchAsyncErrors_1.default)((req, res, next
         const userDoc = yield user_model_1.default.create({
             email,
             name,
+            isAproved: true,
             password: hashedPassword,
             role: "doctor",
         });
